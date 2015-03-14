@@ -5,7 +5,7 @@ import xbmcgui
 
 import CommonFunctions as common
 
-import svt
+from resources.lib import urplay
 import helper
 
 __playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
@@ -58,7 +58,7 @@ def __create_list_item(url, title, thumbnail, urlResolved=False):
 
 
 def __get_video_url(url):
-  url = svt.BASE_URL + url + svt.JSON_SUFFIX
+  url = urplay.BASE_URL + url + urplay.JSON_SUFFIX
   show_obj = helper.resolveShowURL(url)
   if not show_obj["videoUrl"]:
     return ""

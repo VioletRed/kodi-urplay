@@ -9,7 +9,7 @@ def getCategories():
   """
   Returns all categories in the header menu
   """
-  html = helper.getPage(BESTOF_BASE_URL)
+  html = helper.helpergetPage(BESTOF_BASE_URL)
   
   menu = common.parseDOM(html, "ul", attrs = {"class": "menu_1"})[0]
 
@@ -31,7 +31,7 @@ def getShows(url):
   """
   Returns all shows in a category
   """
-  html = helper.getPage(BESTOF_BASE_URL + url)
+  html = helper.helpergetPage(BESTOF_BASE_URL + url)
 
   container = common.parseDOM(html, "div", attrs = {"class":"[^\"']*content_show_videos[^\"']*"})[0]
 

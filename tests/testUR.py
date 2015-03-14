@@ -5,7 +5,7 @@ import unittest
 sys.path.append("../")
 sys.path.append("./lib")
 
-import resources.lib.svt as svt
+import resources.lib.urplay as svt
 import CommonFunctions as common
 
 # Set up the CommonFunctions module
@@ -110,12 +110,6 @@ class TestSvtModule(unittest.TestCase):
   def test_get_episodes(self):
     url = "/agenda"
     articles = svt.getEpisodes(url)
-
-    self.assertHasContent(articles)
-
-  def test_get_clips(self):
-    url = "/agenda"
-    articles = svt.getClips(url)
 
     self.assertHasContent(articles)
 

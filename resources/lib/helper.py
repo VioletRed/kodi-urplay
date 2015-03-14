@@ -8,7 +8,7 @@ import xbmcaddon
 
 import CommonFunctions as common
 
-addon = xbmcaddon.Addon("plugin.video.svtplay")
+addon = xbmcaddon.Addon("plugin.video.urplay")
 THUMB_SIZE = "extralarge"
 
 # Available bandwidths

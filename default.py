@@ -9,18 +9,16 @@ import xbmcgui
 import xbmcaddon
 import xbmcplugin
 import CommonFunctions as common
-import resources.lib.bestofsvt as bestof
 import resources.lib.helper as helper
-import resources.lib.svt as svt
+import resources.lib.urplay as ur
 import resources.lib.PlaylistManager as PlaylistManager
 import resources.lib.FavoritesManager as FavoritesManager
 from resources.lib.PlaylistDialog import PlaylistDialog
 
-MODE_CHANNELS = "kanaler"
 MODE_A_TO_O = "a-o"
 MODE_PROGRAM = "pr"
 MODE_CLIPS = "clips"
-MODE_LIVE_PROGRAMS = "live-channels"
+MODE_KIDS = "kids"
 MODE_LATEST = "ep"
 MODE_POPULAR = "popular"
 MODE_LAST_CHANCE = "last-chance"
@@ -29,8 +27,6 @@ MODE_CATEGORIES = "categories"
 MODE_CATEGORY = "ti"
 MODE_LETTER = "letter"
 MODE_SEARCH = "search"
-MODE_BESTOF_CATEGORIES = "bestofcategories"
-MODE_BESTOF_CATEGORY = "bestofcategory"
 MODE_VIEW_TITLES = "view_titles"
 MODE_VIEW_EPISODES = "view_episodes"
 MODE_VIEW_CLIPS = "view_clips"
@@ -44,7 +40,7 @@ S_USE_ALPHA_CATEGORIES = "alpha"
 
 PLUGIN_HANDLE = int(sys.argv[1])
 
-addon = xbmcaddon.Addon("plugin.video.svtplay")
+addon = xbmcaddon.Addon("plugin.video.urplay")
 localize = addon.getLocalizedString
 xbmcplugin.setContent(PLUGIN_HANDLE, "tvshows")
 
@@ -54,14 +50,12 @@ common.dbg = helper.getSetting(S_DEBUG)
 
 def viewStart():
 
+  addDirectoryItem(localize(30001), { "mode": MODE_CATEGORIES })
   addDirectoryItem(localize(30009), { "mode": MODE_POPULAR })
   addDirectoryItem(localize(30003), { "mode": MODE_LATEST })
   addDirectoryItem(localize(30010), { "mode": MODE_LAST_CHANCE })
-  addDirectoryItem(localize(30002), { "mode": MODE_LIVE_PROGRAMS })
-  addDirectoryItem(localize(30008), { "mode": MODE_CHANNELS })
+  addDirectoryItem(localize(30002), { "mode": MODE_KIDS })
   addDirectoryItem(localize(30000), { "mode": MODE_A_TO_O })
-  addDirectoryItem(localize(30001), { "mode": MODE_CATEGORIES })
-  addDirectoryItem(localize(30007), { "mode": MODE_BESTOF_CATEGORIES })
   addDirectoryItem(localize(30006), { "mode": MODE_SEARCH })
   addDirectoryItem(localize(30405), { "mode": MODE_FAVORITES })
   addDirectoryItem(localize(30400), { "mode": MODE_PLAYLIST_MANAGER }, folder=False)
@@ -71,7 +65,7 @@ def viewFavorites():
 
   for item in favorites:
     list_item = xbmcgui.ListItem(item["title"])
-    fm_script = "special://home/addons/plugin.video.svtplay/resources/lib/FavoritesManager.py"
+    fm_script = "special://home/addons/plugin.video.urplay/resources/lib/FavoritesManager.py"
     fm_action = "remove"
     list_item.addContextMenuItems(
       [
@@ -92,53 +86,53 @@ def viewManagePlaylist():
   del plm_dialog
 
 def viewAtoO():
-  programs = svt.getAtoO()
+  programs = ur.getAtoO()
 
   for program in programs:
     addDirectoryItem(program["title"], { "mode": MODE_PROGRAM, "url": program["url"] })
 
 def viewCategories():
-  categories = svt.getCategories()
+  categories = ur.getCategories()
 
   for category in categories:
     addDirectoryItem(category["title"], { "mode": MODE_CATEGORY, "url": category["url"] }, thumbnail=category["thumbnail"])
 
 def viewAlphaDirectories():
-  alphas = svt.getAlphas()
+  alphas = ur.getAlphas()
   if not alphas:
     return
   for alpha in alphas:
     addDirectoryItem(alpha["title"], { "mode": MODE_LETTER, "letter": alpha["char"] })
 
 def viewProgramsByLetter(letter):
-  programs = svt.getProgramsByLetter(letter)
+  programs = ur.getProgramsByLetter(letter)
 
   for program in programs:
     addDirectoryItem(program["title"], { "mode": MODE_PROGRAM, "url": program["url"] })
 
 def viewPopular():
-  articles = svt.getPopular()
+  articles = ur.getPopular()
   if not articles:
     return
   for article in articles:
     createDirItem(article, MODE_VIDEO)
 
 def viewLatestVideos():
-  articles = svt.getLatestVideos()
+  articles = ur.getLatestVideos()
   if not articles:
     return
   for article in articles:
     createDirItem(article, MODE_VIDEO)
 
 def viewLastChance():
-  articles = svt.getLastChance()
+  articles = ur.getLastChance()
   if not articles:
     return
   for article in articles:
     createDirItem(article, MODE_VIDEO)
 
 def viewLivePrograms():
-  articles = svt.getLivePrograms()
+  articles = ur.getLivePrograms()
   if not articles:
     return
   for article in articles:
@@ -146,20 +140,20 @@ def viewLivePrograms():
       createDirItem(article, MODE_VIDEO)
 
 def viewChannels():
-  channels = svt.getChannels()
+  channels = ur.getChannels()
   if not channels:
     return
   for channel in channels:
     createDirItem(channel, MODE_VIDEO)
 
 def viewCategory(url):
-  if url == svt.URL_TO_OA:
+  if url == ur.URL_TO_OA:
     dialog = xbmcgui.Dialog()
     dialog.ok("SVT Play", localize(30107))
     viewStart()
     return
 
-  programs = svt.getProgramsForCategory(url)
+  programs = ur.getProgramsForCategory(url)
   if not programs:
     return
   for program in programs:
@@ -169,7 +163,7 @@ def viewEpisodes(url):
   """
   Displays the episodes for a program with URL 'url'.
   """
-  episodes = svt.getEpisodes(url)
+  episodes = ur.getEpisodes(url)
   if not episodes:
     helper.errorMsg("No episodes found!")
     return
@@ -190,7 +184,7 @@ def viewClips(url):
   """
   Displays the latest clips for a program
   """
-  clips = svt.getClips(url)
+  clips = ur.getClips(url)
   if not clips:
     helper.errorMsg("No clips found!")
     return
@@ -208,9 +202,9 @@ def viewSearch():
 
   keyword = re.sub(r" ", "+", keyword)
 
-  url = svt.URL_TO_SEARCH + keyword
+  url = ur.URL_TO_SEARCH + keyword
 
-  results = svt.getSearchResults(url)
+  results = ur.getSearchResults(url)
   for result in results:
     mode = MODE_VIDEO
     if result["type"] == "program":
@@ -274,7 +268,7 @@ def startVideo(url):
   if not url.startswith("/"):
     url = "/" + url
 
-  url = svt.BASE_URL + url + svt.JSON_SUFFIX
+  url = ur.BASE_URL + url + ur.JSON_SUFFIX
 
   show_obj = helper.resolveShowURL(url)
   player = xbmc.Player()
@@ -311,7 +305,7 @@ def addDirectoryItem(title, params, thumbnail = None, folder = True, live = Fals
     if params["mode"] == MODE_VIDEO:
       li.setProperty("IsPlayable", "true")
       # Add context menu item for adding a video to playlist
-      plm_script = "special://home/addons/plugin.video.svtplay/resources/lib/PlaylistManager.py"
+      plm_script = "special://home/addons/plugin.video.urplay/resources/lib/PlaylistManager.py"
       plm_action = "add"
       if not thumbnail:
         thumbnail = ""
@@ -324,7 +318,7 @@ def addDirectoryItem(title, params, thumbnail = None, folder = True, live = Fals
         ], replaceItems=True)
   if params["mode"] == MODE_PROGRAM:
     # Add context menu item for adding programs as favorites
-    fm_script = "special://home/addons/plugin.video.svtplay/resources/lib/FavoritesManager.py"
+    fm_script = "special://home/addons/plugin.video.urplay/resources/lib/FavoritesManager.py"
     fm_action = "add"
     li.addContextMenuItems(
       [
@@ -370,7 +364,7 @@ elif ARG_MODE == MODE_POPULAR:
   viewPopular()
 elif ARG_MODE == MODE_LAST_CHANCE:
   viewLastChance()
-elif ARG_MODE == MODE_LIVE_PROGRAMS:
+elif ARG_MODE == MODE_KIDS:
   viewLivePrograms()
 elif ARG_MODE == MODE_CHANNELS:
   viewChannels()

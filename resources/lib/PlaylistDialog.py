@@ -4,7 +4,7 @@ import PlaylistManager
 import xbmcaddon
 import xbmcgui
 
-ADDON = xbmcaddon.Addon('plugin.video.svtplay')
+ADDON = xbmcaddon.Addon('plugin.video.urplay')
 
 ACTION_SELECT_ITEM = 7
 ACTION_PREVIOUS_MENU = 10

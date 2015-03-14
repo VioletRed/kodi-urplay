@@ -1,23 +1,13 @@
-# XBMC SVT Play Addon
+# Kodi UR addon
 
-With this addon you can stream content from SVT Play (svtplay.se).
-The plugin fetches the video URL from the SVT Play website and feeds it to the XBMC video player. HLS (m3u8) is the preferred video format by the plugin.
+With this addon you can stream content from UR (ur.se).
+The plugin fetches the video URL from the UR website and feeds it to the XBMC video player. HLS (m3u8) is the preferred video format by the plugin.
 
-It requires XBMC 13.0 (Gotham) to function.
+Based on [SVT Play addon from nilzen](https://github.com/nilzen/xbmc-svtplay)
+
+It has been tested with Helix (14.0).
 
 To open the **context menu**, press "c" on a keyboard or long press "Menu" on Apple TV 2 (ATV2).
-
-## Using the Playlist
-The plugin includes a feature for adding videos to XBMC's playlist.
-
-### Add to Playlist
-Open the context menu (keyboard key "c") and click on "Add to playlist".
-
-### Remove from Playlist
-Open the playlist from the plugin's top menu. Highlight a video and then press on the context menu key ("c").
-
-### Start Playing the Playlist
-Open the playlist from the plugin's top menu. Click on "Play".
 
 ## Favorites
 TV programs in the A-Ö and category listings can be added as favorites. To add a program as a favorite, open the context menu, when a program is highlighted in the menu, and then click on "Add to favorites".
@@ -38,8 +28,6 @@ To remove a favorite, open the context menu, when a favorite is highlighted in t
   * Forces the addon to choose stream according to the set bandwidth. This option can be used to force lower resolution streams on devices with lower bandwidth capacity (i.e mobile devices). This option can only be used if "Don't use avc1.77.30 streams" is disabled.
 
 ## Known Issues
-### Live broadcasts does not work on iOS, ATV2, OSX and Android
-This is due to encrypted HLS streams not being supported. See this issue ticket for more info [#98](https://github.com/nilzen/xbmc-svtplay/issues/98).
 
 ## Development
 

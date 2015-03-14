@@ -4,12 +4,15 @@ import urllib
 import helper
 import CommonFunctions as common
 
-BASE_URL = "http://svtplay.se"
+URPLAY_BASE_URL = "http://urplay.se"
+UR_BASE_URL =  "http://ur.se"
 
-URL_A_TO_O = "/program"
-URL_TO_SEARCH = "/sok?q="
+
+URL_A_TO_O = URPLAY_BASE_URL+"/program"
+URL_TO_SEARCH = URPLAY_BASE_URL+"/sok?q="
 URL_TO_OA = "/kategorier/oppetarkiv"
-URL_TO_CHANNELS = "/kanaler"
+URL_TO_SUBJECTS = "/kanaler"
+URL_TO_INSPIRATION = UR_BASE_URL+"/Inspiration"
 
 JSON_SUFFIX = "?output=json"
 
@@ -29,7 +32,7 @@ def getAtoO():
   """
   Returns a list of all programs, sorted A-Z.
   """
-  html = getPage(URL_A_TO_O)
+  html = helper.getPage(URL_A_TO_O)
 
   link_class = "[^\"']*play_alphabetic-list__video-link[^\"']*"
   texts = common.parseDOM(html, "a" , attrs = { "class": link_class })
@@ -50,7 +53,7 @@ def getCategories():
   """
   Returns a list of all categories.
   """
-  html = getPage("/")
+  html = helper.getPage("/")
 
 
   container = common.parseDOM(html, "div", attrs = { "id": "[^\"']*playJs-categories[^\"']*" })
@@ -77,7 +80,7 @@ def getCategories():
       continue
 
     category["title"] = common.replaceHTMLCodes(title)
-    category["thumbnail"] = BASE_URL + thumbs[index]
+    category["thumbnail"] = URPLAY_BASE_URL + thumbs[index]
     categories.append(category)
 
   return categories
@@ -87,7 +90,7 @@ def getProgramsForCategory(url):
   """
   Returns a list of programs for a specific category URL.
   """
-  html = getPage(url)
+  html = helper.getPage(url)
 
   container = common.parseDOM(html, "div", attrs = { "id" : "[^\"']*playJs-alphabetic-list[^\"']*" })
 
@@ -117,7 +120,7 @@ def getAlphas():
   """
   Returns a list of all letters in the alphabet that has programs.
   """
-  html = getPage(URL_A_TO_O)
+  html = helper.getPage(URL_A_TO_O)
   container = common.parseDOM(html, "ul", attrs = { "class" : "[^\"']*play_alphabetic-list[^\"']*" })
 
   if not container:
@@ -147,7 +150,7 @@ def getProgramsByLetter(letter):
   """
   letter = urllib.unquote(letter)
 
-  html = getPage(URL_A_TO_O)
+  html = helper.getPage(URL_A_TO_O)
 
   letterboxes = common.parseDOM(html, "li", attrs = { "class": "[^\"']*play_alphabetic-list__letter-container[^\"']*" })
   if not letterboxes:
@@ -185,7 +188,7 @@ def getSearchResults(url):
   Returns a list of both clips and programs
   for the supplied search URL.
   """
-  html = getPage(url)
+  html = helper.getPage(url)
 
   results = []
 
@@ -222,7 +225,7 @@ def getSearchResultsForList(html, list_id):
     thumbnail = common.parseDOM(article, "img", attrs = { "class" : "[^\"']*play_videolist-element__thumbnail-image[^\"']*" }, ret = "src")[0]
     url = common.parseDOM(article, "a", ret = "href")[0]
     title = common.replaceHTMLCodes(titles[index])
-    thumbnail = helper.prepareThumb(thumbnail, baseUrl=BASE_URL)
+    thumbnail = helper.prepareThumb(thumbnail, baseUrl=URPLAY_BASE_URL)
 
     item_type = "video"
     if list_id == SEARCH_LIST_TITLES:
@@ -236,7 +239,7 @@ def getChannels():
   Returns the live channels from the page "Kanaler".
   """
   anchor_class = "[^\"']*play_zapper__menu-item-link[^\"']*"
-  html = getPage(URL_TO_CHANNELS)
+  html = helper.getPage(URL_TO_CHANNELS)
 
   container = common.parseDOM(html, "ul", attrs = { "data-play_tabarea" : "ta-schedule"})
   if not container:
@@ -249,7 +252,7 @@ def getChannels():
     title = common.parseDOM(box, "a", attrs = {"class" : anchor_class}, ret = "data-channel")[0]
     url = common.parseDOM(box, "a", attrs = {"class" : anchor_class}, ret = "href")[0]
     plot = common.parseDOM(box, "span", attrs = {"class" : "[^\"']*play_zapper__menu-item-title[^\"']*"})[0]
-    thumbnail = BASE_URL + common.parseDOM(box, "a", attrs = {"class" : anchor_class}, ret = "data-thumbnail")[0]
+    thumbnail = URPLAY_BASE_URL + common.parseDOM(box, "a", attrs = {"class" : anchor_class}, ret = "data-thumbnail")[0]
     channels.append({
       "title" : title,
       "url" : url,
@@ -288,7 +291,7 @@ def getEpisodes(url):
   Returns the episodes for a program URL.
   """
   if not url.startswith('/video/'): # Vertical playlist, find the horizontal one
-    html = getPage(url)
+    html = helper.getPage(url)
     url = common.parseDOM(html, "a",
                           attrs = { "class": "[^\"']*play_title-page-trailer__start-button[^\"']*" },
                           ret = "href")[0]
@@ -309,7 +312,7 @@ def getArticles(section_name, url=None):
   """
   if not url:
     url = "/"
-  html = getPage(url)
+  html = helper.getPage(url)
 
   video_list_class = "[^\"']*play_videolist[^\"']*"
 
@@ -347,7 +350,7 @@ def getArticles(section_name, url=None):
                                 "img",
                                 attrs = { "class": "[^\"']*play_videolist-element__thumbnail-image[^\"']*" },
                                 ret = "src")[0]
-    new_article["thumbnail"] = helper.prepareThumb(thumbnail, baseUrl=BASE_URL)
+    new_article["thumbnail"] = helper.prepareThumb(thumbnail, baseUrl=URPLAY_BASE_URL)
     if section_name == SECTION_LIVE_PROGRAMS:
       notlive = common.parseDOM(article, "span", attrs = {"class": "[^\"']*play_graphics-live[^\"']*is-inactive[^\"']*"})
       if notlive:
@@ -361,15 +364,10 @@ def getArticles(section_name, url=None):
     info["plot"] = plot
     info["aired"] = helper.convertDate(aired)
     info["duration"] = helper.convertDuration(duration)
-    info["fanart"] = helper.prepareFanart(thumbnail, baseUrl=BASE_URL)
+    info["fanart"] = helper.prepareFanart(thumbnail, baseUrl=URPLAY_BASE_URL)
     new_article["info"] = info
     new_articles.append(new_article)
 
   return new_articles
 
 
-def getPage(url):
-  """
-  Wrapper, calls helper.getPage with SVT's base URL
-  """
-  return helper.getPage(BASE_URL + url)
