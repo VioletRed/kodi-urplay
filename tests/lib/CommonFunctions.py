@@ -27,11 +27,11 @@ import HTMLParser
 #import chardet
 import json
 
-version = u"1.2.0"
+version = u"2.5.1"
 plugin = u"CommonFunctions-" + version
 print plugin
 
-USERAGENT = u"Mozilla/5.0 (Windows; U; Windows NT 6.1; en-GB; rv:1.9.2.8) Gecko/20100722 Firefox/3.6.8"
+USERAGENT = u"Mozilla/5.0 (Windows NT 6.2; Win64; x64; rv:16.0.1) Gecko/20121011 Firefox/16.0.1"
 
 if hasattr(sys.modules["__main__"], "xbmc"):
     xbmc = sys.modules["__main__"].xbmc
@@ -93,17 +93,35 @@ def getUserInputNumbers(title=u"Input", default=u""):
     return str(result)
 
 
+def getXBMCVersion():
+    log("", 3)
+    version = xbmc.getInfoLabel( "System.BuildVersion" )
+    log(version, 3)
+    for key in ["-", " "]:
+        if version.find(key) -1:
+            version = version[:version.find(key)]
+    version = float(version)
+    log(repr(version))
+    return version
+
 # Converts the request url passed on by xbmc to the plugin into a dict of key-value pairs
 def getParameters(parameterString):
     log("", 5)
     commands = {}
+    if getXBMCVersion() >= 12.0:
+        parameterString = urllib.unquote_plus(parameterString)
     splitCommands = parameterString[parameterString.find('?') + 1:].split('&')
 
     for command in splitCommands:
         if (len(command) > 0):
             splitCommand = command.split('=')
             key = splitCommand[0]
-            value = splitCommand[1]
+            try: 
+                value = splitCommand[1].encode("utf-8")
+            except:
+                log("Error utf-8 encoding argument value: " + repr(splitCommand[1]))
+                value = splitCommand[1]
+
             commands[key] = value
 
     log(repr(commands), 5)
@@ -117,7 +135,7 @@ def replaceHTMLCodes(txt):
     txt = re.sub("(&#[0-9]+)([^;^0-9]+)", "\\1;\\2", makeUTF8(txt))
 
     txt = HTMLParser.HTMLParser().unescape(txt)
-
+    txt = txt.replace("&amp;", "&")
     log(repr(txt), 5)
     return txt
 
@@ -172,7 +190,10 @@ def _getDOMContent(html, name, match, ret):  # Cleanup
 
 def _getDOMAttributes(match, name, ret):
     log("", 3)
-    lst = re.compile('<' + name + '.*?' + ret + '=(.[^>]*?)>', re.M | re.S).findall(match)
+
+    lst = re.compile('<' + name + '.*?' + ret + '=([\'"].[^>]*?[\'"])>', re.M | re.S).findall(match)
+    if len(lst) == 0:
+        lst = re.compile('<' + name + '.*?' + ret + '=(.[^>]*?)>', re.M | re.S).findall(match)
     ret = []
     for tmp in lst:
         cont_char = tmp[0]
@@ -202,6 +223,7 @@ def _getDOMAttributes(match, name, ret):
 
 def _getDOMElements(item, name, attrs):
     log("", 3)
+
     lst = []
     for key in attrs:
         lst2 = re.compile('(<' + name + '[^>]*?(?:' + key + '=[\'"]' + attrs[key] + '[\'"].*?>))', re.M | re.S).findall(item)
@@ -233,8 +255,18 @@ def _getDOMElements(item, name, attrs):
 def parseDOM(html, name=u"", attrs={}, ret=False):
     log("Name: " + repr(name) + " - Attrs:" + repr(attrs) + " - Ret: " + repr(ret) + " - HTML: " + str(type(html)), 3)
 
-    if isinstance(html, str): # Should be handled
-        html = [html]
+    if isinstance(name, str): # Should be handled
+        try:
+            name = name #.decode("utf-8")
+        except:
+            log("Couldn't decode name binary string: " + repr(name))
+
+    if isinstance(html, str):
+        try:
+            html = [html.decode("utf-8")] # Replace with chardet thingy
+        except:
+            log("Couldn't decode html binary string. Data length: " + repr(len(html)))
+            html = [html]
     elif isinstance(html, unicode):
         html = [html]
     elif not isinstance(html, list):

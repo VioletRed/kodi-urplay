@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import inspect
 import sys
 import unittest
@@ -6,112 +7,48 @@ sys.path.append("../")
 sys.path.append("./lib")
 
 import resources.lib.urplay as svt
+import resources.lib.helper as helper
 import CommonFunctions as common
 
 # Set up the CommonFunctions module
 common.plugin = "TestSvt"
 common.dbg = True
 
+episodes = []
+
 class TestSvtModule(unittest.TestCase):
 
-  def assertHasContent(self, list):
-    if list == None:
-      self.fail("List is None")
+    def assertHasContent(self, list):
+        if list == None:
+            self.fail("List is None")
 
-    if list == []:
-      self.fail("List is empty")
+        if list == []:
+            self.fail("List is empty")
 
-  def test_alphabetic(self):
-    programs = svt.getAtoO()
+    def test_get_alphas(self):
+        alphas = svt.getAlphas()
 
-    self.assertHasContent(programs)
+        self.assertHasContent(alphas)
 
-    for program in programs:
-      for key in program.keys():
-        self.assertIsNotNone(program[key])
+    def test_programs_by_letter(self):
 
-  def test_categories(self):
+        letter = u'V' # "A" should always have programs...
 
-    categories = svt.getCategories()
+        programs = svt.getProgramsByLetter(letter)
 
-    self.assertHasContent(categories)
+        self.assertHasContent(programs)
 
-    for category in categories:
-      for key in category.keys():
-        self.assertIsNotNone(category[key])
+        for program in programs:
+            for key in program.keys():
+                self.assertIsNotNone(program[key])
 
-  def test_programs_for_category(self):
+    def test_start_video(self):
+        helper.resolveShowURL('http://ur.se/Produkter/161124-Valj-sprak!-Varfor-ett-sprak-till')
 
-    categories = svt.getCategories()
-    for category in categories:
-      programs = svt.getProgramsForCategory(category["url"])
-
-      self.assertHasContent(programs)
-
-      for program in programs:
-        for key in program.keys():
-          self.assertIsNotNone(program[key])
-
-  def test_get_alphas(self):
-
-    alphas = svt.getAlphas()
-
-    self.assertHasContent(alphas)
-
-  def test_programs_by_letter(self):
-
-    letter = u'A' # "A" should always have programs...
-
-    programs = svt.getProgramsByLetter(letter)
-
-    self.assertHasContent(programs)
-
-    for program in programs:
-      for key in program.keys():
-        self.assertIsNotNone(program[key])
-
-  def test_search_results(self):
-
-    url = "/sok?q=agenda" # Agenda should have some items
-
-    items = svt.getSearchResults(url)
-
-    self.assertHasContent(items)
-
-    for item in items:
-      for key in item.keys():
-        self.assertIsNotNone(item[key])
-
-  def test_get_popular(self):
-    items = svt.getPopular()
-
-    self.assertHasContent(items)
-
-  def test_get_latest_videos(self):
-    items = svt.getLatestVideos()
-
-    self.assertHasContent(items)
-
-  def test_get_last_chance(self):
-    items = svt.getLastChance()
-
-    self.assertHasContent(items)
-
-  def test_get_live_programs(self):
-    items = svt.getLivePrograms()
-
-    self.assertHasContent(items)
-
-  def test_get_channels(self):
-    items = svt.getChannels()
-
-    self.assertHasContent(items)
-
-  def test_get_episodes(self):
-    url = "/agenda"
-    articles = svt.getEpisodes(url)
-
-    self.assertHasContent(articles)
+    def test_get_episodes(self):
+        episodes = svt.getEpisodes("http://ur.se/Produkter/161123-Valj-sprak")
+        print episodes
+        self.assertHasContent(episodes)
 
 if __name__ == "__main__":
-  unittest.main()
+    unittest.main()

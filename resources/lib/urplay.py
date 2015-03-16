@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 import urllib
+import re
 
 import helper
 import CommonFunctions as common
+from resources.lib.helper import convertChar
 
 URPLAY_BASE_URL = "http://urplay.se"
 UR_BASE_URL =  "http://ur.se"
 
 
-URL_A_TO_O = URPLAY_BASE_URL+"/program"
+URL_A_TO_O = URPLAY_BASE_URL+"/A-O"
 URL_TO_SEARCH = URPLAY_BASE_URL+"/sok?q="
 URL_TO_OA = "/kategorier/oppetarkiv"
 URL_TO_SUBJECTS = "/kanaler"
@@ -29,345 +31,326 @@ SEARCH_LIST_CLIPS = "[^\"']*playJs-search-clips[^\"']*"
 
 
 def getAtoO():
-  """
-  Returns a list of all programs, sorted A-Z.
-  """
-  html = helper.getPage(URL_A_TO_O)
+    """
+    Returns a list of all programs, sorted A-Z.
+    """
+    html = helper.getPage(URL_A_TO_O)
+    
+    link_class = "[^\"']*play_alphabetic-list__video-link[^\"']*"
+    texts = common.parseDOM(html, "a" , attrs = { "class": link_class })
+    hrefs = common.parseDOM(html, "a" , attrs = { "class": link_class }, ret = "href")
 
-  link_class = "[^\"']*play_alphabetic-list__video-link[^\"']*"
-  texts = common.parseDOM(html, "a" , attrs = { "class": link_class })
-  hrefs = common.parseDOM(html, "a" , attrs = { "class": link_class }, ret = "href")
+    programs = []
 
-  programs = []
+    for index, text in enumerate(texts):
+        program = {}
+        program["title"] = common.replaceHTMLCodes(text)
+        program["url"] = hrefs[index]
+        programs.append(program)
 
-  for index, text in enumerate(texts):
-    program = {}
-    program["title"] = common.replaceHTMLCodes(text)
-    program["url"] = hrefs[index]
-    programs.append(program)
-
-  return programs
+    return programs
 
 
 def getCategories():
-  """
-  Returns a list of all categories.
-  """
-  html = helper.getPage("/")
+    """
+    Returns a list of all categories.
+    """
+    html = helper.getPage("/")
 
 
-  container = common.parseDOM(html, "div", attrs = { "id": "[^\"']*playJs-categories[^\"']*" })
-  if not container:
-    helper.errorMsg("Could not find container")
-    return None
-  articles = common.parseDOM(container, "article")
-  if not articles:
-    helper.errorMsg("Could not find articles")
-    return None
-  thumbs = common.parseDOM(container, "img", attrs = { "class": "[^\"']*play_categorylist-element__thumbnail-image[^\"']*" }, ret = "src")
-  if not thumbs:
-    helper.errorMsg("Could not find thumbnails")
-    return None
-  categories = []
+    container = common.parseDOM(html, "div", attrs = { "id": "[^\"']*playJs-categories[^\"']*" })
+    if not container:
+        helper.errorMsg("Could not find container")
+        return None
+    articles = common.parseDOM(container, "article")
+    if not articles:
+        helper.errorMsg("Could not find articles")
+        return None
+    thumbs = common.parseDOM(container, "img", attrs = { "class": "[^\"']*play_categorylist-element__thumbnail-image[^\"']*" }, ret = "src")
+    if not thumbs:
+        helper.errorMsg("Could not find thumbnails")
+        return None
+    categories = []
 
-  for index, article in enumerate(articles):
-    category = {}
-    category["url"] = common.parseDOM(article, "a", ret = "href")[0]
-    title = common.parseDOM(article, "a", ret="title")[0]
+    for index, article in enumerate(articles):
+        category = {}
+        category["url"] = common.parseDOM(article, "a", ret = "href")[0]
+        title = common.parseDOM(article, "a", ret="title")[0]
 
-    if category["url"].endswith("oppetarkiv"):
-      # Skip the "Oppetarkiv" category
-      continue
+        if category["url"].endswith("oppetarkiv"):
+            # Skip the "Oppetarkiv" category
+            continue
 
-    category["title"] = common.replaceHTMLCodes(title)
-    category["thumbnail"] = URPLAY_BASE_URL + thumbs[index]
-    categories.append(category)
+        category["title"] = common.replaceHTMLCodes(title)
+        category["thumbnail"] = URPLAY_BASE_URL + thumbs[index]
+        categories.append(category)
 
-  return categories
+    return categories
 
 
 def getProgramsForCategory(url):
-  """
-  Returns a list of programs for a specific category URL.
-  """
-  html = helper.getPage(url)
+    """
+    Returns a list of programs for a specific category URL.
+    """
+    html = helper.getPage(url)
 
-  container = common.parseDOM(html, "div", attrs = { "id" : "[^\"']*playJs-alphabetic-list[^\"']*" })
+    container = common.parseDOM(html, "div", attrs = { "id" : "[^\"']*playJs-alphabetic-list[^\"']*" })
 
-  if not container:
-    helper.errorMsg("Could not find container for URL "+url)
-    return None
+    if not container:
+        helper.errorMsg("Could not find container for URL "+url)
+        return None
 
-  articles = common.parseDOM(container, "article", attrs = { "class" : "[^\"']*play_videolist-element[^\"']*" })
+    articles = common.parseDOM(container, "article", attrs = { "class" : "[^\"']*play_videolist-element[^\"']*" })
 
-  if not articles:
-    helper.errorMsg("Could not find program links for URL "+url)
-    return None
+    if not articles:
+        helper.errorMsg("Could not find program links for URL "+url)
+        return None
 
-  programs = []
-  for index, article in enumerate(articles):
-    url = common.parseDOM(article, "a", ret="href")[0]
-    title = common.parseDOM(article, "span", attrs= { "class" : "play_videolist-element__title-text" })[0]
-    title = common.replaceHTMLCodes(title)
-    thumbnail = common.parseDOM(article, "img", ret="src")[0]
-    program = { "title": title, "url": url, "thumbnail": thumbnail}
-    programs.append(program)
+    programs = []
+    for article in articles:
+        url = common.parseDOM(article, "a", ret="href")[0]
+        title = common.parseDOM(article, "span", attrs= { "class" : "play_videolist-element__title-text" })[0]
+        title = common.replaceHTMLCodes(title)
+        thumbnail = common.parseDOM(article, "img", ret="src")[0]
+        program = { "title": title, "url": url, "thumbnail": thumbnail}
+        programs.append(program)
 
-  return programs
+    return programs
 
 
 def getAlphas():
-  """
-  Returns a list of all letters in the alphabet that has programs.
-  """
-  html = helper.getPage(URL_A_TO_O)
-  container = common.parseDOM(html, "ul", attrs = { "class" : "[^\"']*play_alphabetic-list[^\"']*" })
+    """
+    Returns a list of all letters in the alphabet that has programs.
+    """
+    html = helper.getPage(URL_A_TO_O)
+    container = common.parseDOM(html, "nav", attrs = { "id" : "quicknav" })
 
-  if not container:
-    helper.errorMsg("No container found!")
-    return None
+    if not container:
+        helper.errorMsg("No container found!")
+        return None
 
-  letters = common.parseDOM(container[0], "h3", attrs = { "class" : "[^\"']*play_alphabetic-list__letter[^\"']*" })
+    letters = common.parseDOM(container[0], "a", attrs = { "accesskey" : "." })
 
-  if not letters:
-    helper.errorMsg("Could not find any letters!")
-    return None
+    if not letters:
+        helper.errorMsg("Could not find any letters!")
+        return None
 
-  alphas = []
+    alphas = []
 
-  for letter in letters:
-    alpha = {}
-    alpha["title"] = helper.convertChar(letter)
-    alpha["char"] =  letter
-    alphas.append(alpha)
+    for letter in letters:
+        alpha = {}
+        alpha["title"] = letter.encode('utf-8', 'ignore')
+        alpha["char"] =  letter.encode('latin1')
+        alphas.append(alpha)
 
-  return alphas
+    return alphas
 
 
 def getProgramsByLetter(letter):
-  """
-  Returns a list of all program starting with the supplied letter.
-  """
-  letter = urllib.unquote(letter)
+    """
+    Returns a list of all program starting with the supplied letter.
+    """
+    letter = convertChar(urllib.unquote(letter))
 
-  html = helper.getPage(URL_A_TO_O)
+    html = helper.getPage(URL_A_TO_O)
 
-  letterboxes = common.parseDOM(html, "li", attrs = { "class": "[^\"']*play_alphabetic-list__letter-container[^\"']*" })
-  if not letterboxes:
-    helper.errorMsg("No containers found for letter '%s'" % letter)
-    return None
+    res = re.search("<a id=\"%s\">"%letter, html)
+    if not res:
+        helper.errorMsg("No containers found for letter '%s'" % letter)
+        return None
 
-  letterbox = None
+    letterbox = common.parseDOM(html[res.start():], "ul", attrs = { })
+    letterbox = letterbox[0]
+    if not letterbox:
+        helper.errorMsg("No containers found for letter '%s'" % letter)
+        return None
 
-  for letterbox in letterboxes:
+    lis = common.parseDOM(letterbox, "li", attrs = { })
+    if not lis:
+        helper.errorMsg("No items found for letter '"+letter+"'")
+        return None
 
-    heading = common.parseDOM(letterbox, "h3")[0]
+    programs = []
 
-    if heading == letter:
-      break
+    for li in lis:
+        program = {}
+        program["url"] = UR_BASE_URL + common.parseDOM(li, "a", ret = "href")[0]
+        title = common.parseDOM(li, "a")[0]
+        title = title[:title.find("\n")]
+        program["title"] = common.replaceHTMLCodes(title)
+        programs.append(program)
 
-  lis = common.parseDOM(letterbox, "li", attrs = { "class": "[^\"']*play_js-filterable-item[^\"']*" })
-  if not lis:
-    helper.errorMsg("No items found for letter '"+letter+"'")
-    return None
-
-  programs = []
-
-  for li in lis:
-    program = {}
-    program["url"] = common.parseDOM(li, "a", ret = "href")[0]
-    title = common.parseDOM(li, "a")[0]
-    program["title"] = common.replaceHTMLCodes(title)
-    programs.append(program)
-
-  return programs
+    return programs
 
 
 def getSearchResults(url):
-  """
-  Returns a list of both clips and programs
-  for the supplied search URL.
-  """
-  html = helper.getPage(url)
+    """
+    Returns a list of both clips and programs
+    for the supplied search URL.
+    """
+    html = helper.getPage(url)
+    
+    results = []
+    
+    for list_id in [SEARCH_LIST_TITLES, SEARCH_LIST_EPISODES, SEARCH_LIST_CLIPS]:
+        items = getSearchResultsForList(html, list_id)
+        if not items:
+            helper.errorMsg("No items in list '"+list_id+"'")
+            continue
+        results.extend(items)
 
-  results = []
-
-  for list_id in [SEARCH_LIST_TITLES, SEARCH_LIST_EPISODES, SEARCH_LIST_CLIPS]:
-    items = getSearchResultsForList(html, list_id)
-    if not items:
-      helper.errorMsg("No items in list '"+list_id+"'")
-      continue
-    results.extend(items)
-
-  return results
+    return results
 
 
 def getSearchResultsForList(html, list_id):
-  """
-  Returns the items in the supplied list.
+    """
+    Returns the items in the supplied list.
+   
+    Lists are the containers on a program page that contains clips or programs.
+    """
+    container = common.parseDOM(html, "div", attrs = { "id" : list_id })
+    if not container:
+        helper.errorMsg("No container found for list ID '"+list_id+"'")
+        return None
 
-  Lists are the containers on a program page that contains clips or programs.
-  """
-  container = common.parseDOM(html, "div", attrs = { "id" : list_id })
-  if not container:
-    helper.errorMsg("No container found for list ID '"+list_id+"'")
-    return None
+    articles = common.parseDOM(container, "article")
+    if not articles:
+        helper.errorMsg("No articles found for list ID '"+list_id+"'")
+        return None
 
-  articles = common.parseDOM(container, "article")
-  if not articles:
-    helper.errorMsg("No articles found for list ID '"+list_id+"'")
-    return None
+    titles = common.parseDOM(container, "article", ret = "data-title")
 
-  titles = common.parseDOM(container, "article", ret = "data-title")
+    results = []
+    for index, article in enumerate(articles):
+        thumbnail = common.parseDOM(article, "img", attrs = { "class" : "[^\"']*play_videolist-element__thumbnail-image[^\"']*" }, ret = "src")[0]
+        url = common.parseDOM(article, "a", ret = "href")[0]
+        title = common.replaceHTMLCodes(titles[index])
+        thumbnail = helper.prepareThumb(thumbnail, baseUrl=URPLAY_BASE_URL)
 
-  results = []
-  for index, article in enumerate(articles):
-    thumbnail = common.parseDOM(article, "img", attrs = { "class" : "[^\"']*play_videolist-element__thumbnail-image[^\"']*" }, ret = "src")[0]
-    url = common.parseDOM(article, "a", ret = "href")[0]
-    title = common.replaceHTMLCodes(titles[index])
-    thumbnail = helper.prepareThumb(thumbnail, baseUrl=URPLAY_BASE_URL)
+        item_type = "video"
+        if list_id == SEARCH_LIST_TITLES:
+            item_type = "program"
+        results.append({"item": { "title" : title, "thumbnail" : thumbnail, "url" : url  }, "type" : item_type })
 
-    item_type = "video"
-    if list_id == SEARCH_LIST_TITLES:
-      item_type = "program"
-    results.append({"item": { "title" : title, "thumbnail" : thumbnail, "url" : url  }, "type" : item_type })
-
-  return results
+    return results
 
 def getChannels():
-  """
-  Returns the live channels from the page "Kanaler".
-  """
-  anchor_class = "[^\"']*play_zapper__menu-item-link[^\"']*"
-  html = helper.getPage(URL_TO_CHANNELS)
+    """
+    Returns the live channels from the page "Kanaler".
+    """
+    anchor_class = "[^\"']*play_zapper__menu-item-link[^\"']*"
+    html = helper.getPage("")
 
-  container = common.parseDOM(html, "ul", attrs = { "data-play_tabarea" : "ta-schedule"})
-  if not container:
-    helper.errorMsg("No container found for channels")
-    return None
+    container = common.parseDOM(html, "ul", attrs = { "data-play_tabarea" : "ta-schedule"})
+    if not container:
+        helper.errorMsg("No container found for channels")
+        return None
 
-  channels = []
-  ch_boxes = common.parseDOM(container, "li")
-  for box in ch_boxes:
-    title = common.parseDOM(box, "a", attrs = {"class" : anchor_class}, ret = "data-channel")[0]
-    url = common.parseDOM(box, "a", attrs = {"class" : anchor_class}, ret = "href")[0]
-    plot = common.parseDOM(box, "span", attrs = {"class" : "[^\"']*play_zapper__menu-item-title[^\"']*"})[0]
-    thumbnail = URPLAY_BASE_URL + common.parseDOM(box, "a", attrs = {"class" : anchor_class}, ret = "data-thumbnail")[0]
-    channels.append({
-      "title" : title,
-      "url" : url,
-      "thumbnail" : thumbnail,
-      "info" : { "title" : plot, "plot" : plot}
-    })
+    channels = []
+    ch_boxes = common.parseDOM(container, "li")
+    for box in ch_boxes:
+        title = common.parseDOM(box, "a", attrs = {"class" : anchor_class}, ret = "data-channel")[0]
+        url = common.parseDOM(box, "a", attrs = {"class" : anchor_class}, ret = "href")[0]
+        plot = common.parseDOM(box, "span", attrs = {"class" : "[^\"']*play_zapper__menu-item-title[^\"']*"})[0]
+        thumbnail = URPLAY_BASE_URL + common.parseDOM(box, "a", attrs = {"class" : anchor_class}, ret = "data-thumbnail")[0]
+        channels.append({
+          "title" : title,
+          "url" : url,
+          "thumbnail" : thumbnail,
+          "info" : { "title" : plot, "plot" : plot}
+        })
 
-  return channels
+    return channels
 
 def getPopular():
-  """
-  Returns the 'popular' items.
-  """
-  return getArticles(SECTION_POPULAR)
+    """
+    Returns the 'popular' items.
+    """
+    return getArticles(SECTION_POPULAR)
 
 def getLatestVideos():
-  """
-  Returns the latest videos.
-  """
-  return getArticles(SECTION_LATEST_VIDEOS)
+    """
+    Returns the latest videos.
+    """
+    return getArticles(SECTION_LATEST_VIDEOS)
 
 def getLastChance():
-  """
-  Returns the 'last chance' videos
-  """
-  return getArticles(SECTION_LAST_CHANCE)
+    """
+    Returns the 'last chance' videos
+    """
+    return getArticles(SECTION_LAST_CHANCE)
 
 def getLivePrograms():
-  """
-  Returns the 'live' channels (differs from 'channels')
-  """
-  return getArticles(SECTION_LIVE_PROGRAMS)
+    """
+    Returns the 'live' channels (differs from 'channels')
+    """
+    return getArticles(SECTION_LIVE_PROGRAMS)
 
 def getEpisodes(url):
-  """
-  Returns the episodes for a program URL.
-  """
-  if not url.startswith('/video/'): # Vertical playlist, find the horizontal one
-    html = helper.getPage(url)
-    url = common.parseDOM(html, "a",
-                          attrs = { "class": "[^\"']*play_title-page-trailer__start-button[^\"']*" },
-                          ret = "href")[0]
-    url = url[:url.rfind('/') + 1]
-  return getArticles(SECTION_EPISODES, url)
+    """
+    Returns the episodes for a program URL.
+    """
+    print "Episodes for " + url
+    return getArticles(SECTION_EPISODES, url)
 
 def getClips(url):
-  """
-  Returns the clips for a program URL.
-  """
-  return getArticles(SECTION_LATEST_CLIPS, url)
+    """
+    Returns the clips for a program URL.
+    """
+    return getArticles(SECTION_LATEST_CLIPS, url)
 
 def getArticles(section_name, url=None):
-  """
-  Returns a list of the articles in a section as program items.
-
-  Program items have 'title', 'thumbnail', 'url' and 'info' keys.
-  """
-  if not url:
-    url = "/"
-  html = helper.getPage(url)
-
-  video_list_class = "[^\"']*play_videolist[^\"']*"
-
-  container = common.parseDOM(html, "div", attrs = { "class" : video_list_class, "id" : section_name })
-  if not container:
-    helper.errorMsg("No container found for section "+section_name+"!")
-    return None
-  container = container[0]
-
-  article_class = "[^\"']*play_videolist-element[^\"']*"
-  articles = common.parseDOM(container, "article", attrs = { "class" : article_class })
-  titles = common.parseDOM(container, "article", attrs = { "class" : article_class }, ret = "data-title")
-  plots = common.parseDOM(container, "article", attrs = { "class" : article_class }, ret = "data-description")
-  airtimes = common.parseDOM(container, "article", attrs = { "class" : article_class }, ret = "data-broadcasted")
-  if section_name == SECTION_LATEST_CLIPS:
-    airtimes = common.parseDOM(container, "article", attrs = { "class" : article_class }, ret = "data-published")
-  durations = common.parseDOM(container, "article", attrs = { "class" : article_class }, ret = "data-length")
-  new_articles = []
-
-  if not articles:
-    helper.errorMsg("No articles found for section '"+section_name+"' !")
-    return None
-
-  for index, article in enumerate(articles):
-    info = {}
-    new_article = {}
-    plot = plots[index]
-    aired = airtimes[index]
-    duration = durations[index]
-    title = titles[index]
-    new_article["url"] = common.parseDOM(article, "a",
-                            attrs = { "class": "[^\"']*play_videolist-element__link[^\"']*" },
-                            ret = "href")[0]
-    thumbnail = common.parseDOM(article,
-                                "img",
-                                attrs = { "class": "[^\"']*play_videolist-element__thumbnail-image[^\"']*" },
-                                ret = "src")[0]
-    new_article["thumbnail"] = helper.prepareThumb(thumbnail, baseUrl=URPLAY_BASE_URL)
-    if section_name == SECTION_LIVE_PROGRAMS:
-      notlive = common.parseDOM(article, "span", attrs = {"class": "[^\"']*play_graphics-live[^\"']*is-inactive[^\"']*"})
-      if notlive:
-        new_article["live"] = False
-      else:
-        new_article["live"] = True
-    title = common.replaceHTMLCodes(title)
-    plot = common.replaceHTMLCodes(plot)
-    new_article["title"] = title
-    info["title"] = title
-    info["plot"] = plot
-    info["aired"] = helper.convertDate(aired)
-    info["duration"] = helper.convertDuration(duration)
-    info["fanart"] = helper.prepareFanart(thumbnail, baseUrl=URPLAY_BASE_URL)
-    new_article["info"] = info
-    new_articles.append(new_article)
-
-  return new_articles
+    """
+    Returns a list of the articles in a section as program items.
+    
+    Program items have 'title', 'thumbnail', 'url' and 'info' keys.
+    """
+    if not url:
+        url = "/"
+    html = helper.getPage(url)
+    
+    container = common.parseDOM(html, "dd|div", attrs = { "class" : "selected" })
+    if not container:
+        helper.errorMsg("No container found for section "+section_name+"!")
+        return None
+    container = container[0]
+    
+    article_class = "product-puff"
+    articles = common.parseDOM(container, "section", attrs = { "class" : article_class })
+    
+    if not articles:
+        helper.errorMsg("No articles found for section '"+section_name+"' !")
+        return None
+    
+    new_articles = []
+    for article in articles:
+        # print article.encode("utf-8","ignore")
+        info = {}
+        new_article = {}
+        title = common.parseDOM(article, "h3")[0]
+        plot = common.parseDOM(article,"p", attrs={"class":"description"})[0]
+        duration = common.parseDOM(article, "dd")[1]
+        thumbnail = common.parseDOM(article, "img", attrs={}, ret="data-src")[0]
+        new_article["url"] = UR_BASE_URL +  common.parseDOM(article, "a",
+                                attrs = { "class": "puff tv video" },
+                                ret = "href")[0]
+        new_article["thumbnail"] = thumbnail
+        if section_name == SECTION_LIVE_PROGRAMS:
+            notlive = common.parseDOM(article, "span", attrs = {"class": "[^\"']*play_graphics-live[^\"']*is-inactive[^\"']*"})
+            if notlive:
+                new_article["live"] = False
+            else:
+                new_article["live"] = True
+        title = common.replaceHTMLCodes(title)
+        plot = common.replaceHTMLCodes(plot)
+        new_article["title"] = title
+        info["title"] = title
+        info["plot"] = plot
+        info["duration"] = helper.convertDuration(duration)
+        info["fanart"] = thumbnail
+        new_article["info"] = info
+        new_articles.append(new_article)
+    
+    return new_articles
 
 

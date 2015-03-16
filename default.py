@@ -50,290 +50,259 @@ common.dbg = helper.getSetting(S_DEBUG)
 
 def viewStart():
 
-  addDirectoryItem(localize(30001), { "mode": MODE_CATEGORIES })
-  addDirectoryItem(localize(30009), { "mode": MODE_POPULAR })
-  addDirectoryItem(localize(30003), { "mode": MODE_LATEST })
-  addDirectoryItem(localize(30010), { "mode": MODE_LAST_CHANCE })
-  addDirectoryItem(localize(30002), { "mode": MODE_KIDS })
-  addDirectoryItem(localize(30000), { "mode": MODE_A_TO_O })
-  addDirectoryItem(localize(30006), { "mode": MODE_SEARCH })
-  addDirectoryItem(localize(30405), { "mode": MODE_FAVORITES })
-  addDirectoryItem(localize(30400), { "mode": MODE_PLAYLIST_MANAGER }, folder=False)
+    addDirectoryItem(localize(30001), { "mode": MODE_CATEGORIES })
+    addDirectoryItem(localize(30009), { "mode": MODE_POPULAR })
+    addDirectoryItem(localize(30003), { "mode": MODE_LATEST })
+    addDirectoryItem(localize(30010), { "mode": MODE_LAST_CHANCE })
+    addDirectoryItem(localize(30002), { "mode": MODE_KIDS })
+    addDirectoryItem(localize(30000), { "mode": MODE_A_TO_O })
+    addDirectoryItem(localize(30006), { "mode": MODE_SEARCH })
+    addDirectoryItem(localize(30405), { "mode": MODE_FAVORITES })
+    addDirectoryItem(localize(30400), { "mode": MODE_PLAYLIST_MANAGER }, folder=False)
 
 def viewFavorites():
-  favorites = FavoritesManager.get_all()
+    favorites = FavoritesManager.get_all()
 
-  for item in favorites:
-    list_item = xbmcgui.ListItem(item["title"])
-    fm_script = "special://home/addons/plugin.video.urplay/resources/lib/FavoritesManager.py"
-    fm_action = "remove"
-    list_item.addContextMenuItems(
-      [
-        (
-          localize(30407),
-          "XBMC.RunScript("+fm_script+", "+fm_action+", "+item["id"]+")"
-         )
-      ], replaceItems=True)
-    params = {}
-    params["url"] = item["url"]
-    params["mode"] = MODE_PROGRAM
-    xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys.argv[0] + '?' + urllib.urlencode(params), list_item, True)
+    for item in favorites:
+        list_item = xbmcgui.ListItem(item["title"])
+        fm_script = "special://home/addons/plugin.video.urplay/resources/lib/FavoritesManager.py"
+        fm_action = "remove"
+        list_item.addContextMenuItems(
+            [
+                (
+                    localize(30407),
+                    "XBMC.RunScript("+fm_script+", "+fm_action+", "+item["id"]+")"
+                 )
+            ], replaceItems=True)
+        params = {}
+        params["url"] = item["url"]
+        params["mode"] = MODE_PROGRAM
+        xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys.argv[0] + '?' + urllib.urlencode(params), list_item, True)
 
 
 def viewManagePlaylist():
-  plm_dialog = PlaylistDialog()
-  plm_dialog.doModal()
-  del plm_dialog
+    plm_dialog = PlaylistDialog()
+    plm_dialog.doModal()
+    del plm_dialog
 
 def viewAtoO():
-  programs = ur.getAtoO()
+    programs = ur.getAtoO()
 
-  for program in programs:
-    addDirectoryItem(program["title"], { "mode": MODE_PROGRAM, "url": program["url"] })
+    for program in programs:
+        addDirectoryItem(program["title"], { "mode": MODE_PROGRAM, "url": program["url"] })
 
 def viewCategories():
-  categories = ur.getCategories()
+    categories = ur.getCategories()
 
-  for category in categories:
-    addDirectoryItem(category["title"], { "mode": MODE_CATEGORY, "url": category["url"] }, thumbnail=category["thumbnail"])
+    for category in categories:
+        addDirectoryItem(category["title"], { "mode": MODE_CATEGORY, "url": category["url"] }, thumbnail=category["thumbnail"])
 
 def viewAlphaDirectories():
-  alphas = ur.getAlphas()
-  if not alphas:
-    return
-  for alpha in alphas:
-    addDirectoryItem(alpha["title"], { "mode": MODE_LETTER, "letter": alpha["char"] })
+    alphas = ur.getAlphas()
+    if not alphas:
+        return
+    for alpha in alphas:
+        addDirectoryItem(alpha["title"], { "mode": MODE_LETTER, "letter": alpha["char"] })
 
 def viewProgramsByLetter(letter):
-  programs = ur.getProgramsByLetter(letter)
+    programs = ur.getProgramsByLetter(letter)
 
-  for program in programs:
-    addDirectoryItem(program["title"], { "mode": MODE_PROGRAM, "url": program["url"] })
+    if not programs: return
+
+    for program in programs:
+        addDirectoryItem(program["title"], { "mode": MODE_PROGRAM, "url": program["url"] })
 
 def viewPopular():
-  articles = ur.getPopular()
-  if not articles:
-    return
-  for article in articles:
-    createDirItem(article, MODE_VIDEO)
+    articles = ur.getPopular()
+    if not articles:
+        return
+    for article in articles:
+        createDirItem(article, MODE_VIDEO)
 
 def viewLatestVideos():
-  articles = ur.getLatestVideos()
-  if not articles:
-    return
-  for article in articles:
-    createDirItem(article, MODE_VIDEO)
+    articles = ur.getLatestVideos()
+    if not articles:
+        return
+    for article in articles:
+        createDirItem(article, MODE_VIDEO)
 
 def viewLastChance():
-  articles = ur.getLastChance()
-  if not articles:
-    return
-  for article in articles:
-    createDirItem(article, MODE_VIDEO)
+    articles = ur.getLastChance()
+    if not articles:
+        return
+    for article in articles:
+        createDirItem(article, MODE_VIDEO)
 
 def viewLivePrograms():
-  articles = ur.getLivePrograms()
-  if not articles:
-    return
-  for article in articles:
-    if article["live"] == True:
-      createDirItem(article, MODE_VIDEO)
+    articles = ur.getLivePrograms()
+    if not articles:
+        return
+    for article in articles:
+        if article["live"] == True:
+            createDirItem(article, MODE_VIDEO)
 
 def viewChannels():
-  channels = ur.getChannels()
-  if not channels:
-    return
-  for channel in channels:
-    createDirItem(channel, MODE_VIDEO)
+    channels = ur.getChannels()
+    if not channels:
+        return
+    for channel in channels:
+        createDirItem(channel, MODE_VIDEO)
 
 def viewCategory(url):
-  if url == ur.URL_TO_OA:
-    dialog = xbmcgui.Dialog()
-    dialog.ok("SVT Play", localize(30107))
-    viewStart()
-    return
+    if url == ur.URL_TO_OA:
+        dialog = xbmcgui.Dialog()
+        dialog.ok("SVT Play", localize(30107))
+        viewStart()
+        return
 
-  programs = ur.getProgramsForCategory(url)
-  if not programs:
-    return
-  for program in programs:
-    addDirectoryItem(program["title"], { "mode" : MODE_PROGRAM, "url" : program["url"] }, thumbnail=program["thumbnail"])
+    programs = ur.getProgramsForCategory(url)
+    if not programs:
+        return
+    for program in programs:
+        addDirectoryItem(program["title"], { "mode" : MODE_PROGRAM, "url" : program["url"] }, thumbnail=program["thumbnail"])
 
 def viewEpisodes(url):
-  """
-  Displays the episodes for a program with URL 'url'.
-  """
-  episodes = ur.getEpisodes(url)
-  if not episodes:
-    helper.errorMsg("No episodes found!")
-    return
+    """
+    Displays the episodes for a program with URL 'url'.
+    """
+    episodes = ur.getEpisodes(url)
+    if not episodes:
+        helper.errorMsg("No episodes found!")
+        return
 
-  for episode in episodes:
-    createDirItem(episode, MODE_VIDEO)
+    for episode in episodes:
+        createDirItem(episode, MODE_VIDEO)
 
 def addClipDirItem(url):
-  """
-  Adds the "Clips" directory item to a program listing.
-  """
-  params = {}
-  params["mode"] = MODE_CLIPS
-  params["url"] = url
-  addDirectoryItem(localize(30108), params)
+    """
+    Adds the "Clips" directory item to a program listing.
+    """
+    params = {}
+    params["mode"] = MODE_CLIPS
+    params["url"] = url
+    addDirectoryItem(localize(30108), params)
 
 def viewClips(url):
-  """
-  Displays the latest clips for a program
-  """
-  clips = ur.getClips(url)
-  if not clips:
-    helper.errorMsg("No clips found!")
-    return
+    """
+    Displays the latest clips for a program
+    """
+    clips = ur.getClips(url)
+    if not clips:
+        helper.errorMsg("No clips found!")
+        return
 
-  for clip in clips:
-    createDirItem(clip, MODE_VIDEO)
+    for clip in clips:
+        createDirItem(clip, MODE_VIDEO)
 
 def viewSearch():
-  keyword = common.getUserInput(localize(30102))
-  if keyword == "" or not keyword:
-    viewStart()
-    return
-  keyword = urllib.quote(keyword)
-  helper.infoMsg("Search string: " + keyword)
+    keyword = common.getUserInput(localize(30102))
+    if keyword == "" or not keyword:
+        viewStart()
+        return
+    keyword = urllib.quote(keyword)
+    helper.infoMsg("Search string: " + keyword)
 
-  keyword = re.sub(r" ", "+", keyword)
+    keyword = re.sub(r" ", "+", keyword)
 
-  url = ur.URL_TO_SEARCH + keyword
+    url = ur.URL_TO_SEARCH + keyword
 
-  results = ur.getSearchResults(url)
-  for result in results:
-    mode = MODE_VIDEO
-    if result["type"] == "program":
-      mode = MODE_PROGRAM
-    createDirItem(result["item"], mode)
-
-
-def viewBestOfCategories():
-  """
-  Creates a directory displaying each of the
-  categories from the bestofsvt page
-  """
-  categories = bestof.getCategories()
-  params = {}
-  params["mode"] = MODE_BESTOF_CATEGORY
-
-  for category in categories:
-    params["url"] = category["url"]
-    addDirectoryItem(category["title"], params)
-
-
-def viewBestOfCategory(url):
-  """
-  Creates a directory containing all shows displayed
-  for a category
-  """
-  shows = bestof.getShows(url)
-  params = {}
-  params["mode"] = MODE_VIDEO
-
-  for show in shows:
-    params["url"] = show["url"]
-    addDirectoryItem(show["title"], params, show["thumbnail"], False, False, show["info"])
+    results = ur.getSearchResults(url)
+    for result in results:
+        mode = MODE_VIDEO
+        if result["type"] == "program":
+            mode = MODE_PROGRAM
+        createDirItem(result["item"], mode)
 
 
 def createDirItem(article, mode):
-  """
-  Given an article and a mode; create directory item
-  for the article.
-  """
-  if not helper.getSetting(S_HIDE_SIGN_LANGUAGE) or (article["title"].lower().endswith("teckentolkad") == False and article["title"].lower().find("teckenspråk".decode("utf-8")) == -1):
+    """
+    Given an article and a mode; create directory item
+    for the article.
+    """
+    if not helper.getSetting(S_HIDE_SIGN_LANGUAGE) or (article["title"].lower().endswith("teckentolkad") == False and article["title"].lower().find("teckenspråk".decode("utf-8")) == -1):
 
-    params = {}
-    params["mode"] = mode
-    params["url"] = article["url"]
-    folder = False
+        params = {}
+        params["mode"] = mode
+        params["url"] = article["url"]
+        folder = False
 
-    if mode == MODE_PROGRAM:
-      folder = True
-    info = None
-    if "info" in article.keys():
-      info = article["info"]
-    addDirectoryItem(article["title"], params, article["thumbnail"], folder, False, info)
+        if mode == MODE_PROGRAM:
+            folder = True
+        info = None
+        if "info" in article.keys():
+            info = article["info"]
+        addDirectoryItem(article["title"], params, article["thumbnail"], folder, False, info)
 
 
 def startVideo(url):
-  """
-  Starts the XBMC player if a valid video URL is
-  found for the given page URL.
-  """
-  if not url.startswith("/"):
-    url = "/" + url
+    """
+    Starts the XBMC player if a valid video URL is
+    found for the given page URL.
+    """
+    show_obj = helper.resolveShowURL(url)
+    player = xbmc.Player()
+    startTime = time.time()
 
-  url = ur.BASE_URL + url + ur.JSON_SUFFIX
+    if show_obj["videoUrl"]:
+        xbmcplugin.setResolvedUrl(PLUGIN_HANDLE, True, xbmcgui.ListItem(path=show_obj["videoUrl"]))
 
-  show_obj = helper.resolveShowURL(url)
-  player = xbmc.Player()
-  startTime = time.time()
+        if show_obj["subtitleUrl"]:
+            while not player.isPlaying() and time.time() - startTime < 10:
+                time.sleep(1.)
 
-  if show_obj["videoUrl"]:
-    xbmcplugin.setResolvedUrl(PLUGIN_HANDLE, True, xbmcgui.ListItem(path=show_obj["videoUrl"]))
+            player.setSubtitles(show_obj["subtitleUrl"])
 
-    if show_obj["subtitleUrl"]:
-      while not player.isPlaying() and time.time() - startTime < 10:
-        time.sleep(1.)
-
-      player.setSubtitles(show_obj["subtitleUrl"])
-
-      if not helper.getSetting(S_SHOW_SUBTITLES):
-        player.showSubtitles(False)
-  else:
-    # No video URL was found
-    dialog = xbmcgui.Dialog()
-    dialog.ok("SVT Play", localize(30100))
+            if not helper.getSetting(S_SHOW_SUBTITLES):
+                player.showSubtitles(False)
+    else:
+        # No video URL was found
+        dialog = xbmcgui.Dialog()
+        dialog.ok("SVT Play", localize(30100))
 
 
 def addDirectoryItem(title, params, thumbnail = None, folder = True, live = False, info = None):
 
-  li = xbmcgui.ListItem(title)
+    li = xbmcgui.ListItem(title)
 
-  if thumbnail:
-    li.setThumbnailImage(thumbnail)
+    if thumbnail:
+        li.setThumbnailImage(thumbnail)
 
-  if live:
-    li.setProperty("IsLive", "true")
+    if live:
+        li.setProperty("IsLive", "true")
 
-  if not folder:
-    if params["mode"] == MODE_VIDEO:
-      li.setProperty("IsPlayable", "true")
-      # Add context menu item for adding a video to playlist
-      plm_script = "special://home/addons/plugin.video.urplay/resources/lib/PlaylistManager.py"
-      plm_action = "add"
-      if not thumbnail:
-        thumbnail = ""
-      li.addContextMenuItems(
-        [
-          (
-            localize(30404),
-            "XBMC.RunScript("+plm_script+", "+plm_action+", "+params["url"]+", "+title+", "+thumbnail+")"
-           )
-        ], replaceItems=True)
-  if params["mode"] == MODE_PROGRAM:
-    # Add context menu item for adding programs as favorites
-    fm_script = "special://home/addons/plugin.video.urplay/resources/lib/FavoritesManager.py"
-    fm_action = "add"
-    li.addContextMenuItems(
-      [
-        (
-          localize(30406),
-          "XBMC.RunScript("+fm_script+", "+fm_action+", "+title+", "+params["url"]+")"
-         )
-      ], replaceItems=True)
+    if not folder:
+        if params["mode"] == MODE_VIDEO:
+            li.setProperty("IsPlayable", "true")
+            # Add context menu item for adding a video to playlist
+            plm_script = "special://home/addons/plugin.video.urplay/resources/lib/PlaylistManager.py"
+            plm_action = "add"
+            if not thumbnail:
+                thumbnail = ""
+            li.addContextMenuItems(
+                [
+                    (
+                        localize(30404),
+                        "XBMC.RunScript("+plm_script+", "+plm_action+", "+params["url"]+", "+title+", "+thumbnail+")"
+                     )
+                ], replaceItems=True)
+    if params["mode"] == MODE_PROGRAM:
+        # Add context menu item for adding programs as favorites
+        fm_script = "special://home/addons/plugin.video.urplay/resources/lib/FavoritesManager.py"
+        fm_action = "add"
+        li.addContextMenuItems(
+            [
+                (
+                    localize(30406),
+                    "XBMC.RunScript("+fm_script+", "+fm_action+", "+title+", "+params["url"]+")"
+                 )
+            ], replaceItems=True)
 
-  if info:
-    li.setInfo("Video", info)
-    if "fanart" in info.keys() and helper.getSetting("showfanart"):
-      li.setArt({"fanart": info["fanart"]})
+    if info:
+        li.setInfo("Video", info)
+        if "fanart" in info.keys() and helper.getSetting("showfanart"):
+            li.setArt({"fanart": info["fanart"]})
 
-  xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys.argv[0] + '?' + urllib.urlencode(params), li, folder)
+    xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys.argv[0] + '?' + urllib.urlencode(params), li, folder)
 
 # Main segment of script
 ARG_PARAMS = helper.getUrlParameters(sys.argv[2])
@@ -341,44 +310,38 @@ ARG_MODE = ARG_PARAMS.get("mode")
 ARG_URL = urllib.unquote_plus(ARG_PARAMS.get("url", ""))
 
 if not ARG_MODE:
-  viewStart()
+    viewStart()
 elif ARG_MODE == MODE_A_TO_O:
-  if helper.getSetting(S_USE_ALPHA_CATEGORIES):
-    viewAlphaDirectories()
-  else:
-    viewAtoO()
+    if helper.getSetting(S_USE_ALPHA_CATEGORIES):
+        viewAlphaDirectories()
+    else:
+        viewAtoO()
 elif ARG_MODE == MODE_CATEGORIES:
-  viewCategories()
+    viewCategories()
 elif ARG_MODE == MODE_CATEGORY:
-  viewCategory(ARG_URL)
+    viewCategory(ARG_URL)
 elif ARG_MODE == MODE_PROGRAM:
-  viewEpisodes(ARG_URL)
-  addClipDirItem(ARG_URL)
+    viewEpisodes(ARG_URL)
+    addClipDirItem(ARG_URL)
 elif ARG_MODE == MODE_CLIPS:
-  viewClips(ARG_URL)
+    viewClips(ARG_URL)
 elif ARG_MODE == MODE_VIDEO:
-  startVideo(ARG_URL)
+    startVideo(ARG_URL)
 elif ARG_MODE == MODE_LATEST:
-  viewLatestVideos()
+    viewLatestVideos()
 elif ARG_MODE == MODE_POPULAR:
-  viewPopular()
+    viewPopular()
 elif ARG_MODE == MODE_LAST_CHANCE:
-  viewLastChance()
+    viewLastChance()
 elif ARG_MODE == MODE_KIDS:
-  viewLivePrograms()
-elif ARG_MODE == MODE_CHANNELS:
-  viewChannels()
+    viewLivePrograms()
 elif ARG_MODE == MODE_LETTER:
-  viewProgramsByLetter(ARG_PARAMS.get("letter"))
+    viewProgramsByLetter(ARG_PARAMS.get("letter"))
 elif ARG_MODE == MODE_SEARCH:
-  viewSearch()
-elif ARG_MODE == MODE_BESTOF_CATEGORIES:
-  viewBestOfCategories()
-elif ARG_MODE == MODE_BESTOF_CATEGORY:
-  viewBestOfCategory(ARG_URL)
+    viewSearch()
 elif ARG_MODE == MODE_PLAYLIST_MANAGER:
-  viewManagePlaylist()
+    viewManagePlaylist()
 elif ARG_MODE == MODE_FAVORITES:
-  viewFavorites()
+    viewFavorites()
 
 xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
