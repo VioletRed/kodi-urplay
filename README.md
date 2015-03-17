@@ -37,3 +37,10 @@ The module responsible for parsing the SVT Play website has a couple of tests th
 cd tests
 python -m unittest testSvt
 ```
+
+## Legal issues
+
+UR icon and fanart were taken from ur.se, and I hope are acceptable to use
+in this context.
+
+UR content is financed with tv-fee (tvavgift), so please, pay it :-)
