@@ -7,12 +7,11 @@
   <string id="30004">Senaste nyhetsprogram</string>
   <string id="30005">Rekommenderat</string>
   <string id="30006">Sök</string>
-  <string id="30007">BestOfSVT.se</string>
   <string id="30008">Kanaler</string>
   <string id="30009">Populärast just nu</string>
   <string id="30010">Sista chansen</string>
   <string id="30011">Senaste klipp</string>
-  <string id="30100">Detta program är endast tillgängligt på www.svtplay.se</string>
+  <string id="30100">Detta program är endast tillgängligt på www.ur.se</string>
   <string id="30101">Visa fler...</string>
   <string id="30102">Sök efter:</string>
   <string id="30103">Sökningen gav inga träffar</string>
@@ -25,7 +24,7 @@
   <string id="30401">Rensa</string>
   <string id="30402">Stäng</string>
   <string id="30403">Spela</string>
-  <string id="30404">Lägg till i spellista</string>
+  <string id="30404">Köa objekt</string>
   <string id="30405">Favoriter</string>
   <string id="30406">Lägg till som favorit</string>
   <string id="30407">Ta bort från favoriter</string>

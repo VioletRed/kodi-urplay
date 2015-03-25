@@ -151,7 +151,7 @@ def viewChannels():
 def viewCategory(url):
     if url == ur.URL_TO_OA:
         dialog = xbmcgui.Dialog()
-        dialog.ok("SVT Play", localize(30107))
+        dialog.ok("UR Play", localize(30107))
         viewStart()
         return
 
@@ -257,7 +257,7 @@ def startVideo(url):
     else:
         # No video URL was found
         dialog = xbmcgui.Dialog()
-        dialog.ok("SVT Play", localize(30100))
+        dialog.ok("UR Play", localize(30100))
 
 
 def addDirectoryItem(title, params, thumbnail = None, folder = True, live = False, info = None):
@@ -284,7 +284,7 @@ def addDirectoryItem(title, params, thumbnail = None, folder = True, live = Fals
                         localize(30404),
                         "XBMC.RunScript("+plm_script+", "+plm_action+", "+params["url"]+", "+title+", "+thumbnail+")"
                      )
-                ], replaceItems=True)
+                ], replaceItems=False)
     if params["mode"] == MODE_PROGRAM:
         # Add context menu item for adding programs as favorites
         fm_script = "special://home/addons/plugin.video.urplay/resources/lib/FavoritesManager.py"
