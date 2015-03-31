@@ -18,7 +18,6 @@ def getPage(url):
     if not url.startswith("/") and not url.startswith("http://"):
         url = "/" + url
     
-    print url
     result = common.fetchPage({ "link": url })
     
     if result["status"] == 200:
@@ -343,13 +342,26 @@ def resolveShowURL(show_url):
         common.log("No script found")
         return {"videoUrl": video_url, "subtitleUrl": subtitle_url}
 
-    json_obj = json.loads(script[14:-2]) # Ugly hack, but UR is predictable here
-    subtitle_url = json_obj['subtitles'].split(",")[0]
-    video_url = ("http://"+json_obj['streaming_config']['streamer']['redirect']+
-                "/"+json_obj['file_html5']+
-                json_obj['streaming_config']['http_streaming']['hls_file']+
-                "?cid=urplay")
-    print video_url
+    # Decode JSON object containing stream information
+    # Ugly hack, but UR is predictable here and it's easier than a regex
+    json_obj = json.loads(script[14:-2])
+
+    # Add subtitles if available
+    if 'subtitles' in json_obj.keys() and len(json_obj['subtitles']) > 0:
+        subtitle_url = json_obj['subtitles'][0]['file']
+
+    # print json_obj.keys()
+    # Find the highest resolution available
+    streamFormats = ['file_html5_hd', 'file_http_hd', 'file_html5', 'file_http']
+    for streamFormat in streamFormats:
+        if (streamFormat in json_obj.keys()) and (json_obj[streamFormat] is not u''):
+            video_url = ("http://" +
+                        json_obj['streaming_config']['streamer']['redirect'] + 
+                        "/"+json_obj[streamFormat] +
+                        json_obj['streaming_config']['http_streaming']['hls_file'])
+            if "_html5" in streamFormat:
+                video_url = video_url + "?cid=urplay"
+            break
     return {"videoUrl": video_url, "subtitleUrl": subtitle_url}
 
 def getVideoExtension(video_url):

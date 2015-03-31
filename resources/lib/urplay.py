@@ -29,33 +29,39 @@ SEARCH_LIST_TITLES = "[^\"']*playJs-search-titles[^\"']*"
 SEARCH_LIST_EPISODES = "[^\"']*playJs-search-episodes[^\"']*"
 SEARCH_LIST_CLIPS = "[^\"']*playJs-search-clips[^\"']*"
 
+def getAtoOProducts(container, letter=""):
+
+    lis = common.parseDOM(container, "li", attrs = { })
+    if not lis:
+        helper.errorMsg("No items found for letter '"+letter+"'")
+        return None
+
+    programs = []
+
+    for li in lis:
+        program = {}
+        program["url"] = UR_BASE_URL + common.parseDOM(li, "a", ret = "href")[0]
+        title = common.parseDOM(li, "a")[0]
+        title = title[:title.find("\n")]
+        program["title"] = common.replaceHTMLCodes(title)
+        programs.append(program)
+
+    return programs
+
 
 def getAtoO():
     """
     Returns a list of all programs, sorted A-Z.
     """
     html = helper.getPage(URL_A_TO_O)
-    
-    link_class = "[^\"']*play_alphabetic-list__video-link[^\"']*"
-    texts = common.parseDOM(html, "a" , attrs = { "class": link_class })
-    hrefs = common.parseDOM(html, "a" , attrs = { "class": link_class }, ret = "href")
-
-    programs = []
-
-    for index, text in enumerate(texts):
-        program = {}
-        program["title"] = common.replaceHTMLCodes(text)
-        program["url"] = hrefs[index]
-        programs.append(program)
-
-    return programs
-
+    container = common.parseDOM(html, "section", attrs = {"id":"alphabet"})
+    return getAtoOProducts(container)
 
 def getCategories():
     """
     Returns a list of all categories.
     """
-    html = helper.getPage("/")
+    html = helper.getPage(UR_BASE_URL)
 
 
     container = common.parseDOM(html, "div", attrs = { "id": "[^\"']*playJs-categories[^\"']*" })
@@ -165,23 +171,7 @@ def getProgramsByLetter(letter):
         helper.errorMsg("No containers found for letter '%s'" % letter)
         return None
 
-    lis = common.parseDOM(letterbox, "li", attrs = { })
-    if not lis:
-        helper.errorMsg("No items found for letter '"+letter+"'")
-        return None
-
-    programs = []
-
-    for li in lis:
-        program = {}
-        program["url"] = UR_BASE_URL + common.parseDOM(li, "a", ret = "href")[0]
-        title = common.parseDOM(li, "a")[0]
-        title = title[:title.find("\n")]
-        program["title"] = common.replaceHTMLCodes(title)
-        programs.append(program)
-
-    return programs
-
+    return getAtoOProducts(letterbox, letter)
 
 def getSearchResults(url):
     """

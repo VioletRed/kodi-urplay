@@ -262,47 +262,53 @@ def startVideo(url):
 
 def addDirectoryItem(title, params, thumbnail = None, folder = True, live = False, info = None):
 
-    li = xbmcgui.ListItem(title)
-
-    if thumbnail:
-        li.setThumbnailImage(thumbnail)
-
-    if live:
-        li.setProperty("IsLive", "true")
-
-    if not folder:
-        if params["mode"] == MODE_VIDEO:
-            li.setProperty("IsPlayable", "true")
-            # Add context menu item for adding a video to playlist
-            plm_script = "special://home/addons/plugin.video.urplay/resources/lib/PlaylistManager.py"
-            plm_action = "add"
-            if not thumbnail:
-                thumbnail = ""
+    if True:
+        pass
+    try:
+        pass
+        li = xbmcgui.ListItem(title)
+        
+        if thumbnail:
+            li.setThumbnailImage(thumbnail)
+        
+        if live:
+            li.setProperty("IsLive", "true")
+        
+        if not folder:
+            if params["mode"] == MODE_VIDEO:
+                li.setProperty("IsPlayable", "true")
+                # Add context menu item for adding a video to playlist
+                plm_script = "special://home/addons/plugin.video.urplay/resources/lib/PlaylistManager.py"
+                plm_action = "add"
+                if not thumbnail:
+                    thumbnail = ""
+                li.addContextMenuItems(
+                    [
+                        (
+                            localize(30404),
+                            "XBMC.RunScript("+plm_script+", "+plm_action+", "+params["url"]+", "+title+", "+thumbnail+")"
+                         )
+                    ], replaceItems=False)
+        if params["mode"] == MODE_PROGRAM:
+            # Add context menu item for adding programs as favorites
+            fm_script = "special://home/addons/plugin.video.urplay/resources/lib/FavoritesManager.py"
+            fm_action = "add"
             li.addContextMenuItems(
                 [
                     (
-                        localize(30404),
-                        "XBMC.RunScript("+plm_script+", "+plm_action+", "+params["url"]+", "+title+", "+thumbnail+")"
+                        localize(30406),
+                        "XBMC.RunScript("+fm_script+", "+fm_action+", "+title+", "+params["url"]+")"
                      )
-                ], replaceItems=False)
-    if params["mode"] == MODE_PROGRAM:
-        # Add context menu item for adding programs as favorites
-        fm_script = "special://home/addons/plugin.video.urplay/resources/lib/FavoritesManager.py"
-        fm_action = "add"
-        li.addContextMenuItems(
-            [
-                (
-                    localize(30406),
-                    "XBMC.RunScript("+fm_script+", "+fm_action+", "+title+", "+params["url"]+")"
-                 )
-            ], replaceItems=True)
-
-    if info:
-        li.setInfo("Video", info)
-        if "fanart" in info.keys() and helper.getSetting("showfanart"):
-            li.setArt({"fanart": info["fanart"]})
-
-    xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys.argv[0] + '?' + urllib.urlencode(params), li, folder)
+                ], replaceItems=True)
+        
+        if info:
+            li.setInfo("Video", info)
+            if "fanart" in info.keys() and helper.getSetting("showfanart"):
+                li.setArt({"fanart": info["fanart"]})
+        
+        xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys.argv[0] + '?' + urllib.urlencode(params), li, folder)
+    except:
+        pass
 
 # Main segment of script
 ARG_PARAMS = helper.getUrlParameters(sys.argv[2])

@@ -26,12 +26,14 @@ class TestSvtModule(unittest.TestCase):
             self.fail("List is empty")
 
     def test_get_alphas(self):
+        print "###### Testing getAlphas ######"
         alphas = svt.getAlphas()
 
         self.assertHasContent(alphas)
 
     def test_programs_by_letter(self):
 
+        print "###### Testing getProgramsByLetter ######"
         letter = u'V' # "A" should always have programs...
 
         programs = svt.getProgramsByLetter(letter)
@@ -43,11 +45,17 @@ class TestSvtModule(unittest.TestCase):
                 self.assertIsNotNone(program[key])
 
     def test_start_video(self):
-        helper.resolveShowURL('http://ur.se/Produkter/161124-Valj-sprak!-Varfor-ett-sprak-till')
+        print "###### Testing resolveShowURL ######"
+        programs = helper.resolveShowURL('http://ur.se/Produkter/161124-Valj-sprak!-Varfor-ett-sprak-till')
+        self.assertHasContent(programs)
+        programs = helper.resolveShowURL('http://ur.se/Produkter/177414-Ar-det-sant-Kallkritik')
+        self.assertHasContent(programs)
+        programs = helper.resolveShowURL('http://ur.se/Produkter/183604-Lilla-Aktuellt-skola-2014-10-03')
+        self.assertHasContent(programs)
 
     def test_get_episodes(self):
+        print "###### Testing getEpisodes ######"
         episodes = svt.getEpisodes("http://ur.se/Produkter/161123-Valj-sprak")
-        print episodes
         self.assertHasContent(episodes)
 
 if __name__ == "__main__":
