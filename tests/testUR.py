@@ -57,6 +57,11 @@ class TestSvtModule(unittest.TestCase):
         print "###### Testing getEpisodes ######"
         episodes = svt.getEpisodes("http://ur.se/Produkter/161123-Valj-sprak")
         self.assertHasContent(episodes)
+    
+    def test_get_categories(self):
+        print "###### Testing getCategories ######"
+        categories = svt.getCategories()
+        self.assertHasContent(categories)
 
 if __name__ == "__main__":
     unittest.main()

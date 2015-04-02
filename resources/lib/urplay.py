@@ -57,6 +57,10 @@ def getAtoO():
     container = common.parseDOM(html, "section", attrs = {"id":"alphabet"})
     return getAtoOProducts(container)
 
+def parseCategories(html, recursiveness):
+    articles = common.parseDOM(html, "li")
+    print articles
+
 def getCategories():
     """
     Returns a list of all categories.
@@ -64,31 +68,33 @@ def getCategories():
     html = helper.getPage(UR_BASE_URL)
 
 
-    container = common.parseDOM(html, "div", attrs = { "id": "[^\"']*playJs-categories[^\"']*" })
+    container = common.parseDOM(html, "nav", attrs = { "id": "Huvudmeny-amnen" })
     if not container:
         helper.errorMsg("Could not find container")
         return None
-    articles = common.parseDOM(container, "article")
-    if not articles:
-        helper.errorMsg("Could not find articles")
-        return None
-    thumbs = common.parseDOM(container, "img", attrs = { "class": "[^\"']*play_categorylist-element__thumbnail-image[^\"']*" }, ret = "src")
-    if not thumbs:
-        helper.errorMsg("Could not find thumbnails")
-        return None
-    categories = []
-
-    for index, article in enumerate(articles):
-        category = {}
-        category["url"] = common.parseDOM(article, "a", ret = "href")[0]
-        title = common.parseDOM(article, "a", ret="title")[0]
-
-        if category["url"].endswith("oppetarkiv"):
-            # Skip the "Oppetarkiv" category
+    groups = common.parseDOM(container, "li", attrs={"class":""})
+    allArticles = []
+    allURL = []
+    for group in groups:
+        #print "**************"
+        #print group.encode("utf-8","ignore")
+        #print "**************"
+        articles = common.parseDOM(group, "a", attrs = {"href": "./"})
+        articlesURL = common.parseDOM(group, "a", attrs = {"href": "./"},ret="href")
+        if not articles:
             continue
+        articles[0] = "[B]"+articles[0]+"[/B]"
+        articles[1:] = map(lambda i: "   " + i, articles[1:])
+        allArticles.extend(articles)
+        allURL.extend(articlesURL)
+
+    categories = []
+    for index, article in enumerate(allArticles):
+        category = {}
+        category["url"] = allURL[index]
+        title = article.encode("utf-8","ignore")
 
         category["title"] = common.replaceHTMLCodes(title)
-        category["thumbnail"] = URPLAY_BASE_URL + thumbs[index]
         categories.append(category)
 
     return categories
@@ -325,15 +331,9 @@ def getArticles(section_name, url=None):
                                 attrs = { "class": "puff tv video" },
                                 ret = "href")[0]
         new_article["thumbnail"] = thumbnail
-        if section_name == SECTION_LIVE_PROGRAMS:
-            notlive = common.parseDOM(article, "span", attrs = {"class": "[^\"']*play_graphics-live[^\"']*is-inactive[^\"']*"})
-            if notlive:
-                new_article["live"] = False
-            else:
-                new_article["live"] = True
         title = common.replaceHTMLCodes(title)
         plot = common.replaceHTMLCodes(plot)
-        new_article["title"] = title
+        new_article["title"] = title.encode("utf-8","ignore")
         info["title"] = title
         info["plot"] = plot
         info["duration"] = helper.convertDuration(duration)

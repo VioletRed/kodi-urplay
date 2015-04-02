@@ -288,6 +288,7 @@ def getHighBw(low):
     i = BANDWIDTH.index(low)
     return BANDWIDTH[i+1]
 
+
 def getJSONObj(show_url):
     """
     Returns a SVT JSON object from a show URL
@@ -300,30 +301,35 @@ def getJSONObj(show_url):
 
 def getVideoURL(json_obj):
     """
-    Returns the video URL from a SVT JSON object.
+    Returns the video URL from a UR JSON object.
     """
     video_url = None
 
-    for video in json_obj["video"]["videoReferences"]:
-        if video["playerType"] == "ios":
-            video_url = video["url"]
+    streamFormats = ['file_html5_hd', 'file_http_hd', 'file_html5', 'file_http']
+    for streamFormat in streamFormats:
+        if (streamFormat in json_obj.keys()) and (json_obj[streamFormat] is not u''):
+            video_url = ("http://" +
+                        json_obj['streaming_config']['streamer']['redirect'] + 
+                        "/"+json_obj[streamFormat] +
+                        json_obj['streaming_config']['http_streaming']['hls_file'])
+            if "_html5" in streamFormat:
+                video_url = video_url + "?cid=urplay"
+            break
 
     return video_url
 
+
 def getSubtitleUrl(json_obj):
     """
-    Returns a subtitleURL from a SVT JSON object.
+    Returns a subtitleURL from a UR JSON object.
     """
-    url = None
+    subtitle_url = None
 
-    for subtitle in json_obj["video"]["subtitleReferences"]:
-        if subtitle["url"].endswith(".wsrt"):
-            url = subtitle["url"]
-        else:
-            if len(subtitle["url"]) > 0:
-                common.log("Skipping unknown subtitle: " + subtitle["url"])
+    if 'subtitles' in json_obj.keys() and len(json_obj['subtitles']) > 0:
+        subtitle_url = json_obj['subtitles'][0]['file']
 
-    return url
+    return subtitle_url
+
 
 def resolveShowURL(show_url):
     """
@@ -347,22 +353,14 @@ def resolveShowURL(show_url):
     json_obj = json.loads(script[14:-2])
 
     # Add subtitles if available
-    if 'subtitles' in json_obj.keys() and len(json_obj['subtitles']) > 0:
-        subtitle_url = json_obj['subtitles'][0]['file']
+    subtitle_url = getSubtitleUrl(json_obj)
 
     # print json_obj.keys()
     # Find the highest resolution available
-    streamFormats = ['file_html5_hd', 'file_http_hd', 'file_html5', 'file_http']
-    for streamFormat in streamFormats:
-        if (streamFormat in json_obj.keys()) and (json_obj[streamFormat] is not u''):
-            video_url = ("http://" +
-                        json_obj['streaming_config']['streamer']['redirect'] + 
-                        "/"+json_obj[streamFormat] +
-                        json_obj['streaming_config']['http_streaming']['hls_file'])
-            if "_html5" in streamFormat:
-                video_url = video_url + "?cid=urplay"
-            break
+    video_url = getVideoURL(json_obj)
+
     return {"videoUrl": video_url, "subtitleUrl": subtitle_url}
+
 
 def getVideoExtension(video_url):
     """
@@ -382,8 +380,10 @@ def getVideoExtension(video_url):
 def getSetting(setting):
     return True if addon.getSetting(setting) == "true" else False
 
+
 def errorMsg(msg):
     common.log("Error: "+msg)
+
 
 def infoMsg(msg):
     common.log("Info: "+msg)

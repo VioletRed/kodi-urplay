@@ -95,7 +95,7 @@ def viewCategories():
     categories = ur.getCategories()
 
     for category in categories:
-        addDirectoryItem(category["title"], { "mode": MODE_CATEGORY, "url": category["url"] }, thumbnail=category["thumbnail"])
+        addDirectoryItem(category["title"], { "mode": MODE_CATEGORY, "url": category["url"] })
 
 def viewAlphaDirectories():
     alphas = ur.getAlphas()

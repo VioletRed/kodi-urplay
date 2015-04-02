@@ -226,6 +226,7 @@ def _getDOMElements(item, name, attrs):
 
     lst = []
     for key in attrs:
+        #print '(<' + name + '[^>]*?(?:' + key + '=[\'"]' + attrs[key] + '[\'"].*?>))'
         lst2 = re.compile('(<' + name + '[^>]*?(?:' + key + '=[\'"]' + attrs[key] + '[\'"].*?>))', re.M | re.S).findall(item)
         if len(lst2) == 0 and attrs[key].find(" ") == -1:  # Try matching without quotation marks
             lst2 = re.compile('(<' + name + '[^>]*?(?:' + key + '=' + attrs[key] + '.*?>))', re.M | re.S).findall(item)
