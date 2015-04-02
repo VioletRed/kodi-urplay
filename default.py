@@ -17,19 +17,18 @@ from resources.lib.PlaylistDialog import PlaylistDialog
 
 MODE_A_TO_O = "a-o"
 MODE_PROGRAM = "pr"
-MODE_CLIPS = "clips"
 MODE_KIDS = "kids"
 MODE_LATEST = "ep"
+MODE_INSPIRATION = "inspiration"
 MODE_POPULAR = "popular"
 MODE_LAST_CHANCE = "last-chance"
 MODE_VIDEO = "video"
 MODE_CATEGORIES = "categories"
-MODE_CATEGORY = "ti"
+MODE_SUBJECTS = "subjects"
 MODE_LETTER = "letter"
 MODE_SEARCH = "search"
 MODE_VIEW_TITLES = "view_titles"
 MODE_VIEW_EPISODES = "view_episodes"
-MODE_VIEW_CLIPS = "view_clips"
 MODE_PLAYLIST_MANAGER = "playlist-manager"
 MODE_FAVORITES = "favorites"
 
@@ -50,15 +49,17 @@ common.dbg = helper.getSetting(S_DEBUG)
 
 def viewStart():
 
+    #addDirectoryItem(localize(30012), { "mode": MODE_INSPIRATION })
+    addDirectoryItem(localize(30013), { "mode": MODE_SUBJECTS })
     addDirectoryItem(localize(30001), { "mode": MODE_CATEGORIES })
     addDirectoryItem(localize(30009), { "mode": MODE_POPULAR })
     addDirectoryItem(localize(30003), { "mode": MODE_LATEST })
     addDirectoryItem(localize(30010), { "mode": MODE_LAST_CHANCE })
-    addDirectoryItem(localize(30002), { "mode": MODE_KIDS })
+    #addDirectoryItem(localize(30002), { "mode": MODE_KIDS })
     addDirectoryItem(localize(30000), { "mode": MODE_A_TO_O })
     addDirectoryItem(localize(30006), { "mode": MODE_SEARCH })
-    addDirectoryItem(localize(30405), { "mode": MODE_FAVORITES })
-    addDirectoryItem(localize(30400), { "mode": MODE_PLAYLIST_MANAGER }, folder=False)
+    #addDirectoryItem(localize(30405), { "mode": MODE_FAVORITES })
+    #addDirectoryItem(localize(30400), { "mode": MODE_PLAYLIST_MANAGER }, folder=False)
 
 def viewFavorites():
     favorites = FavoritesManager.get_all()
@@ -91,11 +92,17 @@ def viewAtoO():
     for program in programs:
         addDirectoryItem(program["title"], { "mode": MODE_PROGRAM, "url": program["url"] })
 
+def viewSubjects():
+    categories = ur.getSubjects()
+
+    for category in categories:
+        addDirectoryItem(category["title"], { "mode": MODE_PROGRAM, "url": category["url"] })
+
 def viewCategories():
     categories = ur.getCategories()
 
     for category in categories:
-        addDirectoryItem(category["title"], { "mode": MODE_CATEGORY, "url": category["url"] })
+        addDirectoryItem(category["title"], { "mode": MODE_PROGRAM, "url": category["url"] })
 
 def viewAlphaDirectories():
     alphas = ur.getAlphas()
@@ -148,19 +155,6 @@ def viewChannels():
     for channel in channels:
         createDirItem(channel, MODE_VIDEO)
 
-def viewCategory(url):
-    if url == ur.URL_TO_OA:
-        dialog = xbmcgui.Dialog()
-        dialog.ok("UR Play", localize(30107))
-        viewStart()
-        return
-
-    programs = ur.getProgramsForCategory(url)
-    if not programs:
-        return
-    for program in programs:
-        addDirectoryItem(program["title"], { "mode" : MODE_PROGRAM, "url" : program["url"] }, thumbnail=program["thumbnail"])
-
 def viewEpisodes(url):
     """
     Displays the episodes for a program with URL 'url'.
@@ -170,29 +164,10 @@ def viewEpisodes(url):
         helper.errorMsg("No episodes found!")
         return
 
-    for episode in episodes:
+    for episode in episodes[:-1]:
         createDirItem(episode, MODE_VIDEO)
-
-def addClipDirItem(url):
-    """
-    Adds the "Clips" directory item to a program listing.
-    """
-    params = {}
-    params["mode"] = MODE_CLIPS
-    params["url"] = url
-    addDirectoryItem(localize(30108), params)
-
-def viewClips(url):
-    """
-    Displays the latest clips for a program
-    """
-    clips = ur.getClips(url)
-    if not clips:
-        helper.errorMsg("No clips found!")
-        return
-
-    for clip in clips:
-        createDirItem(clip, MODE_VIDEO)
+    if episodes[-1]["url"] is not "":
+        addDirectoryItem(localize(30101), { "mode" : MODE_PROGRAM, "url" : episodes[-1]["url"] })
 
 def viewSearch():
     keyword = common.getUserInput(localize(30102))
@@ -322,15 +297,14 @@ elif ARG_MODE == MODE_A_TO_O:
         viewAlphaDirectories()
     else:
         viewAtoO()
+elif ARG_MODE == MODE_INSPIRATION:
+    viewEpisodes(ur.URL_TO_INSPIRATION)
+elif ARG_MODE == MODE_SUBJECTS:
+    viewSubjects()
 elif ARG_MODE == MODE_CATEGORIES:
     viewCategories()
-elif ARG_MODE == MODE_CATEGORY:
-    viewCategory(ARG_URL)
 elif ARG_MODE == MODE_PROGRAM:
     viewEpisodes(ARG_URL)
-    addClipDirItem(ARG_URL)
-elif ARG_MODE == MODE_CLIPS:
-    viewClips(ARG_URL)
 elif ARG_MODE == MODE_VIDEO:
     startVideo(ARG_URL)
 elif ARG_MODE == MODE_LATEST:
@@ -338,7 +312,7 @@ elif ARG_MODE == MODE_LATEST:
 elif ARG_MODE == MODE_POPULAR:
     viewPopular()
 elif ARG_MODE == MODE_LAST_CHANCE:
-    viewLastChance()
+    viewEpisodes(ur.URL_TO_LAST_CHANCE)
 elif ARG_MODE == MODE_KIDS:
     viewLivePrograms()
 elif ARG_MODE == MODE_LETTER:
