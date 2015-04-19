@@ -18,10 +18,7 @@ from resources.lib.PlaylistDialog import PlaylistDialog
 MODE_A_TO_O = "a-o"
 MODE_PROGRAM = "pr"
 MODE_KIDS = "kids"
-MODE_LATEST = "ep"
 MODE_INSPIRATION = "inspiration"
-MODE_POPULAR = "popular"
-MODE_LAST_CHANCE = "last-chance"
 MODE_VIDEO = "video"
 MODE_CATEGORIES = "categories"
 MODE_SUBJECTS = "subjects"
@@ -52,9 +49,10 @@ def viewStart():
     #addDirectoryItem(localize(30012), { "mode": MODE_INSPIRATION })
     addDirectoryItem(localize(30013), { "mode": MODE_SUBJECTS })
     addDirectoryItem(localize(30001), { "mode": MODE_CATEGORIES })
-    addDirectoryItem(localize(30009), { "mode": MODE_POPULAR })
-    addDirectoryItem(localize(30003), { "mode": MODE_LATEST })
-    addDirectoryItem(localize(30010), { "mode": MODE_LAST_CHANCE })
+    addDirectoryItem(localize(30010), { "mode": MODE_PROGRAM, "url": ur.URL_TO_PLAYED })
+    addDirectoryItem(localize(30011), { "mode": MODE_PROGRAM, "url": ur.URL_TO_SHARED })
+    addDirectoryItem(localize(30003), { "mode": MODE_PROGRAM, "url": ur.URL_TO_LATEST })
+    addDirectoryItem(localize(30009), { "mode": MODE_PROGRAM, "url": ur.URL_TO_LAST_CHANCE })
     #addDirectoryItem(localize(30002), { "mode": MODE_KIDS })
     addDirectoryItem(localize(30000), { "mode": MODE_A_TO_O })
     addDirectoryItem(localize(30006), { "mode": MODE_SEARCH })
@@ -119,35 +117,6 @@ def viewProgramsByLetter(letter):
     for program in programs:
         addDirectoryItem(program["title"], { "mode": MODE_PROGRAM, "url": program["url"] })
 
-def viewPopular():
-    articles = ur.getPopular()
-    if not articles:
-        return
-    for article in articles:
-        createDirItem(article, MODE_VIDEO)
-
-def viewLatestVideos():
-    articles = ur.getLatestVideos()
-    if not articles:
-        return
-    for article in articles:
-        createDirItem(article, MODE_VIDEO)
-
-def viewLastChance():
-    articles = ur.getLastChance()
-    if not articles:
-        return
-    for article in articles:
-        createDirItem(article, MODE_VIDEO)
-
-def viewLivePrograms():
-    articles = ur.getLivePrograms()
-    if not articles:
-        return
-    for article in articles:
-        if article["live"] == True:
-            createDirItem(article, MODE_VIDEO)
-
 def viewChannels():
     channels = ur.getChannels()
     if not channels:
@@ -195,7 +164,6 @@ def createDirItem(article, mode):
     for the article.
     """
     if not helper.getSetting(S_HIDE_SIGN_LANGUAGE) or (article["title"].lower().endswith("teckentolkad") == False and article["title"].lower().find("teckenspråk".decode("utf-8")) == -1):
-
         params = {}
         params["mode"] = mode
         params["url"] = article["url"]
@@ -307,14 +275,6 @@ elif ARG_MODE == MODE_PROGRAM:
     viewEpisodes(ARG_URL)
 elif ARG_MODE == MODE_VIDEO:
     startVideo(ARG_URL)
-elif ARG_MODE == MODE_LATEST:
-    viewLatestVideos()
-elif ARG_MODE == MODE_POPULAR:
-    viewPopular()
-elif ARG_MODE == MODE_LAST_CHANCE:
-    viewEpisodes(ur.URL_TO_LAST_CHANCE)
-elif ARG_MODE == MODE_KIDS:
-    viewLivePrograms()
 elif ARG_MODE == MODE_LETTER:
     viewProgramsByLetter(ARG_PARAMS.get("letter"))
 elif ARG_MODE == MODE_SEARCH:

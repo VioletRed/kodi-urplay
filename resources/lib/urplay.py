@@ -16,6 +16,9 @@ URL_TO_OA = "/kategorier/oppetarkiv"
 URL_TO_SUBJECTS = "/kanaler"
 URL_TO_INSPIRATION = UR_BASE_URL + "/Inspiration"
 URL_TO_LAST_CHANCE = URPLAY_BASE_URL + "/Sista-chansen"
+URL_TO_LATEST = URPLAY_BASE_URL + "/Senaste"
+URL_TO_PLAYED = URPLAY_BASE_URL + "/Mest-spelade"
+URL_TO_SHARED = URPLAY_BASE_URL + "/Mest-delade"
 
 JSON_SUFFIX = "?output=json"
 
