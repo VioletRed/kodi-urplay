@@ -147,12 +147,11 @@ def viewSearch():
 
     url = ur.URL_TO_SEARCH + keyword
 
-    results = ur.getSearchResults(url)
-    for result in results:
-        mode = MODE_VIDEO
-        if result["type"] == "program":
-            mode = MODE_PROGRAM
-        createDirItem(result["item"], mode)
+    episodes = ur.getSearchResults(url)
+    for episode in episodes[:-1]:
+        createDirItem(episode, MODE_VIDEO)
+    if episodes[-1]["url"] is not "":
+        addDirectoryItem(localize(30101), { "mode" : MODE_PROGRAM, "url" : episodes[-1]["url"] })
 
 
 def createDirItem(article, mode):

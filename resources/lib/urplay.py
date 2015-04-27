@@ -216,17 +216,7 @@ def getSearchResults(url):
     Returns a list of both clips and programs
     for the supplied search URL.
     """
-    html = helper.getPage(url)
-    
-    results = []
-    
-    for list_id in [SEARCH_LIST_TITLES, SEARCH_LIST_EPISODES]:
-        items = getSearchResultsForList(html, list_id)
-        if not items:
-            helper.errorMsg("No items in list '" + list_id + "'")
-            continue
-        results.extend(items)
-
+    results = getArticles(CONTAINER_UR_EPISODES, SECTION_UR_EPISODES, CLASS_UR_EPISODES, url, parseURArticle, 50)
     return results
 
 
@@ -349,7 +339,38 @@ def parseURPlayArticle(article, article_class):
         info["fanart"] = thumbnail[0].replace("_t.jpg","_l.jpg")
 
     new_url = common.parseDOM(article, "a", ret="href")
-    print new_url
+    # print new_url
+    if (new_url is None) or (len(new_url) < 1): return []
+    new_article["url"] = UR_BASE_URL + new_url[0]
+    new_article["title"] = title.encode("utf-8", "ignore")
+    new_article["info"] = info
+
+    return [new_article]
+
+
+def parseURSearch(article, article_class):
+    info = {}
+    new_article = {}
+    title = common.parseDOM(article, "h3")
+    if len(title) >= 1:
+        title = common.replaceHTMLCodes(title[0])
+        info["title"] = title
+    plot = common.parseDOM(article, "p", attrs={"class":"description"})
+    if len(plot) >= 1:
+        plot = common.replaceHTMLCodes(plot[0])
+        info["plot"] = plot[0]
+    duration = common.parseDOM(article, "dd")
+    if len(duration) >= 2:
+        info["duration"] = helper.convertDuration(duration[1])
+    thumbnail = common.parseDOM(article, "img", attrs={}, ret="src")
+    if len(thumbnail) >= 1:
+        new_article["thumbnail"] = thumbnail[0]
+        info["fanart"] = thumbnail[0].replace("_t.jpg","_l.jpg")
+
+    new_url = common.parseDOM(article, "a",
+                            attrs={ "class": article_class },
+                            ret="href")
+    # print new_url
     if (new_url is None) or (len(new_url) < 1): return []
     new_article["url"] = UR_BASE_URL + new_url[0]
     new_article["title"] = title.encode("utf-8", "ignore")
@@ -359,9 +380,9 @@ def parseURPlayArticle(article, article_class):
 
 
 def parseURArticle(article, article_class):
-    
     info = {}
     new_article = {}
+    #print article.encode("utf-8","ignore")
     title = common.parseDOM(article, "h3")
     if len(title) >= 1:
         title = common.replaceHTMLCodes(title[0])
@@ -381,7 +402,7 @@ def parseURArticle(article, article_class):
     new_url = common.parseDOM(article, "a",
                             attrs={ "class": article_class },
                             ret="href")
-    print new_url
+    # print new_url
     if (new_url is None) or (len(new_url) < 1): return []
     new_article["url"] = UR_BASE_URL + new_url[0]
     new_article["title"] = title.encode("utf-8", "ignore")
