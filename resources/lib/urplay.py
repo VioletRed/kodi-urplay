@@ -11,9 +11,7 @@ UR_BASE_URL = "http://ur.se"
 
 
 URL_A_TO_O = URPLAY_BASE_URL + "/A-O"
-URL_TO_SEARCH = URPLAY_BASE_URL + "/sok?q="
-URL_TO_OA = "/kategorier/oppetarkiv"
-URL_TO_SUBJECTS = "/kanaler"
+URL_TO_SEARCH = UR_BASE_URL + "/Produkter?q="
 URL_TO_INSPIRATION = UR_BASE_URL + "/Inspiration"
 URL_TO_LAST_CHANCE = URPLAY_BASE_URL + "/Sista-chansen"
 URL_TO_LATEST = URPLAY_BASE_URL + "/Senaste"
@@ -106,19 +104,20 @@ def getSubjects():
         return None
     container = container[0]
     # print container.encode("utf-8","ignore")
-    groups = common.parseDOM(container, "li")
+    groups = common.parseDOM(container, "ul")
     allArticles = []
     allURL = []
     for group in groups[1:]: # First group is always "Inspiration"
-        # print "**************"
-        # print group.encode("utf-8","ignore")
-        # print "**************"
+        #print "**************"
+        #print group.encode("utf-8","ignore")
+        #print "**************"
         articles = common.parseDOM(group, "a", attrs={"href": "./"})
         articlesURL = common.parseDOM(group, "a", attrs={"href": "./"}, ret="href")
         if not articles:
             continue
         articles[0] = "[B]" + articles[0] + "[/B]"
-        articles[1:] = map(lambda i: "   " + i, articles[1:])
+        if len(articles) > 1:
+            articles[1:] = map(lambda i: "   " + i, articles[1:])
         allArticles.extend(articles)
         allURL.extend(articlesURL)
 
@@ -126,9 +125,8 @@ def getSubjects():
     for index, article in enumerate(allArticles):
         category = {}
         category["url"] = UR_BASE_URL + allURL[index]
-        title = article.encode("utf-8", "ignore")
 
-        category["title"] = common.replaceHTMLCodes(title)
+        category["title"] = common.replaceHTMLCodes(article)
         categories.append(category)
 
     return categories
@@ -351,7 +349,8 @@ def parseURPlayArticle(article, article_class):
         info["fanart"] = thumbnail[0].replace("_t.jpg","_l.jpg")
 
     new_url = common.parseDOM(article, "a", ret="href")
-    if new_url is None or len(new_url) < 1: return []
+    print new_url
+    if (new_url is None) or (len(new_url) < 1): return []
     new_article["url"] = UR_BASE_URL + new_url[0]
     new_article["title"] = title.encode("utf-8", "ignore")
     new_article["info"] = info
@@ -370,7 +369,7 @@ def parseURArticle(article, article_class):
     plot = common.parseDOM(article, "p", attrs={"class":"description"})
     if len(plot) >= 1:
         plot = common.replaceHTMLCodes(plot[0])
-        info["plot"] = plot
+        info["plot"] = plot[0]
     duration = common.parseDOM(article, "dd")
     if len(duration) >= 2:
         info["duration"] = helper.convertDuration(duration[1])
@@ -382,7 +381,8 @@ def parseURArticle(article, article_class):
     new_url = common.parseDOM(article, "a",
                             attrs={ "class": article_class },
                             ret="href")
-    if new_url is None or len(new_url) < 1: []
+    print new_url
+    if (new_url is None) or (len(new_url) < 1): return []
     new_article["url"] = UR_BASE_URL + new_url[0]
     new_article["title"] = title.encode("utf-8", "ignore")
     new_article["info"] = info

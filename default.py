@@ -67,12 +67,9 @@ def viewFavorites():
         fm_script = "special://home/addons/plugin.video.urplay/resources/lib/FavoritesManager.py"
         fm_action = "remove"
         list_item.addContextMenuItems(
-            [
-                (
-                    localize(30407),
-                    "XBMC.RunScript("+fm_script+", "+fm_action+", "+item["id"]+")"
-                 )
-            ], replaceItems=True)
+            [( localize(30407),
+                "XBMC.RunScript("+fm_script+", "+fm_action+", "+item["id"]+")"
+            )], replaceItems=False)
         params = {}
         params["url"] = item["url"]
         params["mode"] = MODE_PROGRAM
@@ -226,24 +223,24 @@ def addDirectoryItem(title, params, thumbnail = None, folder = True, live = Fals
                 if not thumbnail:
                     thumbnail = ""
                 li.addContextMenuItems(
-                    [
-                        (
-                            localize(30404),
-                            "XBMC.RunScript("+plm_script+", "+plm_action+", "+params["url"]+", "+title+", "+thumbnail+")"
-                         )
-                    ], replaceItems=False)
+                    [( localize(30404),
+                        "XBMC.RunScript("+plm_script+", "+plm_action+", "+params["url"]+", "+title+", "+thumbnail+")"
+                    )], replaceItems=False)
+                # Add context menu item to find similar videos
+                li.addContextMenuItems(
+                    [( localize(30408),
+                        "XBMC.ActivateWindow(video, plugin://plugin.video.urplay/?mode=%s&url=%s)"%(MODE_PROGRAM,urllib.quote(params["url"]))
+                    )], replaceItems=False)
+
         if params["mode"] == MODE_PROGRAM:
             # Add context menu item for adding programs as favorites
             fm_script = "special://home/addons/plugin.video.urplay/resources/lib/FavoritesManager.py"
             fm_action = "add"
             li.addContextMenuItems(
-                [
-                    (
-                        localize(30406),
-                        "XBMC.RunScript("+fm_script+", "+fm_action+", "+title+", "+params["url"]+")"
-                     )
-                ], replaceItems=True)
-        
+                [( localize(30406),
+                    "XBMC.RunScript("+fm_script+", "+fm_action+", "+title+", "+params["url"]+")"
+                 )], replaceItems=False)
+
         if info:
             li.setInfo("Video", info)
             if "fanart" in info.keys() and helper.getSetting("showfanart"):
