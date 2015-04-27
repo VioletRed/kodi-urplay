@@ -78,8 +78,8 @@ class TestSvtModule(unittest.TestCase):
     def test_get_subjects(self):
         print "###### Testing getSubjects ######"
         categories = svt.getSubjects()
-        print categories
         self.assertHasContent(categories)
+        # print categories
 
 if __name__ == "__main__":
     unittest.main()

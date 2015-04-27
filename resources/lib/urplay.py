@@ -104,10 +104,12 @@ def getSubjects():
     if not container:
         helper.errorMsg("Could not find container")
         return None
-    groups = common.parseDOM(container, "li", attrs={"class":""})
+    container = container[0]
+    # print container.encode("utf-8","ignore")
+    groups = common.parseDOM(container, "li")
     allArticles = []
     allURL = []
-    for group in groups:
+    for group in groups[1:]: # First group is always "Inspiration"
         # print "**************"
         # print group.encode("utf-8","ignore")
         # print "**************"
@@ -425,11 +427,11 @@ def getArticles(container_name, section_name, article_class, url=None, parse_art
             pages = common.parseDOM(container[0], "a", ret="href")
             active_page = common.parseDOM(container[0], "a", attrs={"class":"active" }, ret="href")[0]
             if pages[-1] != active_page:
-                more_link["url"] = pages[-1]
+                more_link["url"] = URPLAY_BASE_URL + pages[-1]
             pass
     else: # UR view
         more_url = common.parseDOM(container[0], "a", ret="href")
-        more_link["url"] = more_url[0]
+        more_link["url"] = UR_BASE_URL + more_url[0]
 
     new_articles.append(more_link)
     return new_articles
