@@ -3,72 +3,47 @@
 	<include name="Viewtype50">
 		<control type="group">
 			<left>140</left>
-			<top>140</top>
+			<top>160</top>
 			<visible>Control.IsVisible(50)</visible>
 			<!-- Image -->
 			<control type="image">
 				<width>405</width>
-				<height>600</height>
+				<height>700</height>
 				<texture>$INFO[ListItem.Icon]</texture>
 				<aspectratio aligny="bottom">keep</aspectratio>
 				<visible>SubString(ListItem.Icon,Default)</visible>
 			</control>
 			<control type="image">
 				<width>405</width>
-				<height>600</height>
+				<height>700</height>
 				<texture colordiffuse="00ffffff">$INFO[ListItem.Icon]</texture>
-				<aspectratio>keep</aspectratio>
+				<aspectratio aligny="bottom">keep</aspectratio>
 				<bordertexture>common/black.png</bordertexture>
 				<visible>!SubString(ListItem.Icon,Default)</visible>
 			</control>
 			<control type="image">
 				<width>405</width>
-				<height>600</height>
+				<height>700</height>
 				<texture>$INFO[ListItem.Icon]</texture>
-				<aspectratio>keep</aspectratio>
+				<aspectratio aligny="bottom">keep</aspectratio>
 				<visible>!SubString(ListItem.Icon,Default)</visible>
 			</control>
 			<!-- Info -->
 			<control type="group">
-				<top>649</top>
-				<width>405</width>
-				<height>152</height>
-				<control type="image">
-					<width>130</width>
-					<height>56</height>
-					<texture>$INFO[ListItem.VideoResolution,flagging/video/,.png]</texture>
-				</control>
-				<control type="image">
-					<left>135</left>
-					<width>130</width>
-					<height>56</height>
-					<texture>$INFO[ListItem.AudioCodec,flagging/audio/,.png]</texture>
-				</control>
-				<control type="image">
-					<left>270</left>
-					<width>130</width>
-					<height>56</height>
-					<texture>$VAR[typehackflagging,flagging/video/,.png]</texture>
-				</control>
-				<control type="image">
-					<top>61</top>
-					<width>130</width>
-					<height>56</height>
-					<texture>$INFO[ListItem.VideoAspect,flagging/aspectratio/,.png]</texture>
-				</control>
-				<control type="image">
-					<top>61</top>
-					<left>135</left>
-					<width>130</width>
-					<height>56</height>
-					<texture>$INFO[ListItem.AudioChannels,flagging/audio/,.png]</texture>
-				</control>
-				<control type="image">
-					<top>61</top>
-					<left>270</left>
-					<width>130</width>
-					<height>56</height>
-					<texture>$VAR[videocodec,flagging/video/,.png]</texture>
+				<top>744</top>
+				<width>805</width>
+				<height>112</height>
+				<control type="textbox">
+					<description>Description Value The Movie</description>
+					<left>0</left>
+					<top>32</top>
+					<width>800</width>
+					<height>110</height>
+					<font>font14</font>
+					<align>justify</align>
+					<textcolor>ColorFO</textcolor>
+					<label>$INFO[ListItem.Plot]</label>
+					<autoscroll time="2800" delay="2600" repeat="5000">!System.ScreenSaverActive</autoscroll>
 				</control>
 			</control>
 			<!--control type="grouplist">

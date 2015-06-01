@@ -38,6 +38,12 @@
 			<linespacing>0.94</linespacing>
 			<size>21</size>
 		</font>
+		<font>
+			<name>font14</name>
+			<filename>Arial.ttf</filename>
+			<linespacing>0.94</linespacing>
+			<size>28</size>
+		</font>
 	</fontset>
 	<fontset id="Arial">
 		<font>
