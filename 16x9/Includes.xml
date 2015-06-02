@@ -76,7 +76,7 @@
 			<include>FullscreenDimensions</include>
 			<include>VisibleFadeAnimation</include>
 			<fadetime>400</fadetime>
-			<colordiffuse>22f1f1f1</colordiffuse>
+			<colordiffuse>55f1f1f1</colordiffuse>
 			<texture background="true">$VAR[Fanart]</texture>
 			<animation effect="fade" start="100" end="0" condition="[Player.HasVideo + Skin.HasSetting(BackgroundVideo)] | [Player.HasAudio + Skin.HasSetting(BackgroundVisualisation) + !SubString(Window(videolibrary).Property(TvTunesIsAlive),True)]">Conditional</animation>
 		</control>
