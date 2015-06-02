@@ -20,10 +20,10 @@
 	<include name="Logo">
 		<control type="image">
 			<left>50</left>
-			<top>50</top>
-			<width>247</width>
-			<height>44</height>
-			<texture colordiffuse="ColorHeading">OSMC.png</texture>
+			<top>20</top>
+			<width>100</width>
+			<height>100</height>
+			<texture colordiffuse="ColorHeading">kodi.png</texture>
 		</control>
 	</include>
 	<!-- Window background image -->
