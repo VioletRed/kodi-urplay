@@ -41,7 +41,7 @@
 
 	<variable name="Fanart">
 		<value condition="Window.IsVisible(pictures) + Skin.HasSetting(PictureFanart)">$INFO[ListItem.FileNameAndPath]</value>
-		<value condition="[Skin.HasSetting(MovieFanart) + Container.Content(Movies)] | [Skin.HasSetting(TVFanart) + [Container.Content(TVShows) | Container.Content(Seasons) | Container.Content(Episodes)]] | [Skin.HasSetting(MusicFanart) + Window.IsVisible(musiclibrary)] | [Skin.HasSetting(WeatherFanart) + Window.IsVisible(weather)] | [Skin.HasSetting(AddonFanart) + [Container.Content(Addons) | Window.IsVisible(addonbrowser)]]">$INFO[ListItem.Art(fanart)]</value>
+		<value condition="[Skin.HasSetting(MovieFanart) + Container.Content(Movies)] | [Skin.HasSetting(TVFanart) + [Container.Content(TVShows) | Container.Content(Seasons) | Container.Content(Episodes)]] | [Skin.HasSetting(MusicFanart) + [Window.IsVisible(musiclibrary) | Container.Content(MusicVideos)]] | [Skin.HasSetting(WeatherFanart) + Window.IsVisible(weather)] | [Skin.HasSetting(AddonFanart) + [Container.Content(Addons) | Window.IsVisible(addonbrowser)]]">$INFO[ListItem.Art(fanart)]</value>
 	</variable>
 
 	<variable name="WideInfo">
