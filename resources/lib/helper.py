@@ -305,15 +305,18 @@ def getVideoURL(json_obj):
     """
     video_url = None
 
-    streamFormats = ['file_html5_hd', 'file_http_hd', 'file_html5', 'file_http']
+    balancer = getJSONObj(json_obj['streaming_config']['loadbalancer'])
+    streamer = balancer['redirect']
+    print streamer
+
+    streamFormats = ['file_http_hd', 'file_http', 'file_rtmp_hd', 'file_rtmp']
     for streamFormat in streamFormats:
         if (streamFormat in json_obj.keys()) and (json_obj[streamFormat] is not u''):
-            video_url = ("http://" +
-                        json_obj['streaming_config']['streamer']['redirect'] + 
-                        "/"+json_obj[streamFormat] +
-                        json_obj['streaming_config']['http_streaming']['hls_file'])
-            if "_html5" in streamFormat:
-                video_url = video_url + "?cid=urplay"
+            video_url = streamer + "/"+json_obj[streamFormat]
+            if "_rmtp" in streamFormat:
+                video_url = 'rmtp://' + video_url
+            else:
+                video_url = 'http://' + video_url + json_obj['streaming_config']['http_streaming']['hls_file'] 
             break
 
     return video_url
@@ -343,7 +346,7 @@ def resolveShowURL(show_url):
 
     scripts = common.parseDOM(html, 'script', attrs={"type":"text.javascript"})
     for script in scripts:
-        if script: break
+        if script.startswith("urPlayer"): break
     if not script:
         common.log("No script found")
         return {"videoUrl": video_url, "subtitleUrl": subtitle_url}

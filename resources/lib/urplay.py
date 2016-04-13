@@ -10,7 +10,7 @@ URPLAY_BASE_URL = "http://urplay.se"
 UR_BASE_URL = "http://ur.se"
 
 
-URL_A_TO_O = URPLAY_BASE_URL + "/A-O"
+URL_A_TO_O = URPLAY_BASE_URL + "/sok?rows=999"
 URL_TO_SEARCH = UR_BASE_URL + "/Produkter?q="
 URL_TO_INSPIRATION = UR_BASE_URL + "/Inspiration"
 URL_TO_LAST_CHANCE = URPLAY_BASE_URL + "/Sista-chansen"
@@ -30,14 +30,14 @@ SECTION_LIVE_PROGRAMS = "live-channels"
 CLASS_UR_EPISODES = "puff (?:tv|radio) (?:video|audio)"
 CLASS_URPLAY_EPISODES = "tv|radio"
 CONTAINER_UR_EPISODES = "selected|result-list"
-CONTAINER_URPLAY_EPISODES = "list row"
+CONTAINER_URPLAY_EPISODES = "scroll-x"
 
 SEARCH_LIST_TITLES = "[^\"']*playJs-search-titles[^\"']*"
 SEARCH_LIST_EPISODES = "[^\"']*playJs-search-episodes[^\"']*"
 
 def getAtoOProducts(container, letter=""):
 
-    lis = common.parseDOM(container, "li", attrs={ })
+    lis = common.parseDOM(container, "li", attrs={"class":"series" })
     if not lis:
         helper.errorMsg("No items found for letter '" + letter + "'")
         return None
@@ -45,11 +45,7 @@ def getAtoOProducts(container, letter=""):
     programs = []
 
     for li in lis:
-        program = {}
-        program["url"] = UR_BASE_URL + common.parseDOM(li, "a", ret="href")[0]
-        title = common.parseDOM(li, "a")[0]
-        title = title[:title.find("\n")]
-        program["title"] = common.replaceHTMLCodes(title)
+        program = parseURPlayArticle(li)
         programs.append(program)
 
     return programs
@@ -60,7 +56,7 @@ def getAtoO():
     Returns a list of all programs, sorted A-Z.
     """
     html = helper.getPage(URL_A_TO_O)
-    container = common.parseDOM(html, "section", attrs={"id":"alphabet"})
+    container = common.parseDOM(html, "div", attrs={"id":"all-series"})
     return getAtoOProducts(container)
 
 
@@ -167,13 +163,13 @@ def getAlphas():
     Returns a list of all letters in the alphabet that has programs.
     """
     html = helper.getPage(URL_A_TO_O)
-    container = common.parseDOM(html, "nav", attrs={ "id" : "quicknav" })
+    container = common.parseDOM(html, "div", attrs={ "class" : "anchor-menu" })
 
     if not container:
         helper.errorMsg("No container found!")
         return None
 
-    letters = common.parseDOM(container[0], "a", attrs={ "accesskey" : "." })
+    letters = common.parseDOM(container[0], "a", attrs={ "data-key" : "." })
 
     if not letters:
         helper.errorMsg("Could not find any letters!")
@@ -184,7 +180,7 @@ def getAlphas():
     for letter in letters:
         alpha = {}
         alpha["title"] = letter.encode('utf-8', 'ignore')
-        alpha["char"] = letter.encode('latin1')
+        alpha["char"] = letter.encode('utf-8', 'ignore')
         alphas.append(alpha)
 
     return alphas
@@ -216,7 +212,7 @@ def getSearchResults(url):
     Returns a list of both clips and programs
     for the supplied search URL.
     """
-    results = getArticles(CONTAINER_UR_EPISODES, SECTION_UR_EPISODES, CLASS_UR_EPISODES, url, parseURArticle, 50)
+    results = getArticles(url, parseURPlayArticle, 50)
     return results
 
 
@@ -309,24 +305,20 @@ def getEpisodes(url):
     Returns the episodes for a program URL.
     """
     # print "Episodes for " + url
-    if url.startswith("http://ur.se") or url.startswith("https://ur.se"):
-        if not url:
-            url = UR_BASE_URL
-        return getArticles(CONTAINER_UR_EPISODES, SECTION_UR_EPISODES, CLASS_UR_EPISODES, url, parseURArticle, 50)
     if not url:
         url = URPLAY_BASE_URL
-    return getArticles(CONTAINER_URPLAY_EPISODES, SECTION_URPLAY_EPISODES, CLASS_URPLAY_EPISODES, url, parseURPlayArticle )
+    return getArticles(url, parseURPlayArticle )
 
 
-def parseURPlayArticle(article, article_class):
+def parseURPlayArticle(article):
     
     info = {}
     new_article = {}
-    title = common.parseDOM(article, "h1")
+    title = common.parseDOM(article, "h3")
     if len(title) >= 1:
         title = common.replaceHTMLCodes(title[0])
         info["title"] = title
-    plot = common.parseDOM(article, "p", attrs={"class":"ellipsis-lastline"})
+    plot = common.parseDOM(article, "p", attrs={"class":"description"})
     if len(plot) >= 1:
         plot = common.replaceHTMLCodes(plot[0])
         info["plot"] = plot
@@ -345,116 +337,41 @@ def parseURPlayArticle(article, article_class):
     new_article["title"] = title.encode("utf-8", "ignore")
     new_article["info"] = info
 
-    return [new_article]
+    return new_article
 
 
-def parseURSearch(article, article_class):
-    info = {}
-    new_article = {}
-    title = common.parseDOM(article, "h3")
-    if len(title) >= 1:
-        title = common.replaceHTMLCodes(title[0])
-        info["title"] = title
-    plot = common.parseDOM(article, "p", attrs={"class":"description"})
-    if len(plot) >= 1:
-        plot = common.replaceHTMLCodes(plot[0])
-        info["plot"] = plot[0]
-    duration = common.parseDOM(article, "dd")
-    if len(duration) >= 2:
-        info["duration"] = helper.convertDuration(duration[1])
-    thumbnail = common.parseDOM(article, "img", attrs={}, ret="src")
-    if len(thumbnail) >= 1:
-        new_article["thumbnail"] = thumbnail[0]
-        info["fanart"] = thumbnail[0].replace("_t.jpg","_l.jpg")
-
-    new_url = common.parseDOM(article, "a",
-                            attrs={ "class": article_class },
-                            ret="href")
-    # print new_url
-    if (new_url is None) or (len(new_url) < 1): return []
-    new_article["url"] = UR_BASE_URL + new_url[0]
-    new_article["title"] = title.encode("utf-8", "ignore")
-    new_article["info"] = info
-
-    return [new_article]
-
-
-def parseURArticle(article, article_class):
-    info = {}
-    new_article = {}
-    #print article.encode("utf-8","ignore")
-    title = common.parseDOM(article, "h3")
-    if len(title) >= 1:
-        title = common.replaceHTMLCodes(title[0])
-        info["title"] = title
-    plot = common.parseDOM(article, "p", attrs={"class":"description"})
-    if len(plot) >= 1:
-        plot = common.replaceHTMLCodes(plot[0])
-        info["plot"] = plot[0]
-    duration = common.parseDOM(article, "dd")
-    if len(duration) >= 2:
-        info["duration"] = helper.convertDuration(duration[1])
-    thumbnail = common.parseDOM(article, "img", attrs={}, ret="data-src")
-    if len(thumbnail) >= 1:
-        new_article["thumbnail"] = thumbnail[0]
-        info["fanart"] = thumbnail[0].replace("_t.jpg","_l.jpg")
-
-    new_url = common.parseDOM(article, "a",
-                            attrs={ "class": article_class },
-                            ret="href")
-    # print new_url
-    if (new_url is None) or (len(new_url) < 1): return []
-    new_article["url"] = UR_BASE_URL + new_url[0]
-    new_article["title"] = title.encode("utf-8", "ignore")
-    new_article["info"] = info
-
-    return [new_article]
-
-
-def getArticles(container_name, section_name, article_class, url=None, parse_article=parseURArticle, max_articles=200):
+def getArticles(url, parse_article, max_articles=200):
     """
     Returns a list of the articles in a section as program items.
 
     Program items have 'title', 'thumbnail', 'url' and 'info' keys.
     """
     if not url:
-        url = UR_BASE_URL
+        return None
+
     html = helper.getPage(url)
 
-    containers = common.parseDOM(html, "dd|div", attrs={ "class" : container_name })
+    containers = common.parseDOM(html, "div", attrs={ "id" : "scroller", "class" : "scroll-x" })
     if not containers:
-        helper.errorMsg("No container found for section " + section_name + "!")
+        helper.errorMsg("No container found for episodes!")
         return None
     
     articles = []
     for container in containers:
-        new_articles = common.parseDOM(container, "section", attrs={ "class" : section_name })
-        if len(new_articles) > 0: articles.extend(new_articles)
+        container_articles = common.parseDOM(container, "li", attrs={ })
+        if len(container_articles) > 0: articles.extend(container_articles)
 
     if not articles:
-        helper.errorMsg("No articles found for section '" + section_name + "' !")
+        helper.errorMsg("No articles found for section 'episodes' !")
         return None
     
+    new_articles = []
+    print articles
     for article in articles:
-        new_articles.extend(parse_article(article, article_class))
+        new_articles.append(parse_article(article))
     if len(new_articles) > max_articles:
         new_articles[:-max_articles] = []
-    # More
-    more_link = {"url":"", "title": "Flera"}
-    container = common.parseDOM(html, "div", attrs={ "class" : "show-more" })
-    if not container: # URPlay paginated view
-        container = common.parseDOM(html, "nav", attrs={ "class" : "pagination" })
-        if container:
-            pages = common.parseDOM(container[0], "a", ret="href")
-            active_page = common.parseDOM(container[0], "a", attrs={"class":"active" }, ret="href")[0]
-            if pages[-1] != active_page:
-                more_link["url"] = URPLAY_BASE_URL + pages[-1]
-            pass
-    else: # UR view
-        more_url = common.parseDOM(container[0], "a", ret="href")
-        more_link["url"] = UR_BASE_URL + more_url[0]
 
-    new_articles.append(more_link)
     return new_articles
 
 

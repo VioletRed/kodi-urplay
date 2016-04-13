@@ -46,18 +46,14 @@ common.dbg = helper.getSetting(S_DEBUG)
 
 def viewStart():
 
-    #addDirectoryItem(localize(30012), { "mode": MODE_INSPIRATION })
     addDirectoryItem(localize(30013), { "mode": MODE_SUBJECTS })
     addDirectoryItem(localize(30001), { "mode": MODE_CATEGORIES })
     addDirectoryItem(localize(30010), { "mode": MODE_PROGRAM, "url": ur.URL_TO_PLAYED })
     addDirectoryItem(localize(30011), { "mode": MODE_PROGRAM, "url": ur.URL_TO_SHARED })
     addDirectoryItem(localize(30003), { "mode": MODE_PROGRAM, "url": ur.URL_TO_LATEST })
     addDirectoryItem(localize(30009), { "mode": MODE_PROGRAM, "url": ur.URL_TO_LAST_CHANCE })
-    #addDirectoryItem(localize(30002), { "mode": MODE_KIDS })
     addDirectoryItem(localize(30000), { "mode": MODE_A_TO_O })
     addDirectoryItem(localize(30006), { "mode": MODE_SEARCH })
-    #addDirectoryItem(localize(30405), { "mode": MODE_FAVORITES })
-    #addDirectoryItem(localize(30400), { "mode": MODE_PLAYLIST_MANAGER }, folder=False)
 
 def viewFavorites():
     favorites = FavoritesManager.get_all()
@@ -98,21 +94,6 @@ def viewCategories():
 
     for category in categories:
         addDirectoryItem(category["title"], { "mode": MODE_PROGRAM, "url": category["url"] })
-
-def viewAlphaDirectories():
-    alphas = ur.getAlphas()
-    if not alphas:
-        return
-    for alpha in alphas:
-        addDirectoryItem(alpha["title"], { "mode": MODE_LETTER, "letter": alpha["char"] })
-
-def viewProgramsByLetter(letter):
-    programs = ur.getProgramsByLetter(letter)
-
-    if not programs: return
-
-    for program in programs:
-        addDirectoryItem(program["title"], { "mode": MODE_PROGRAM, "url": program["url"] })
 
 def viewChannels():
     channels = ur.getChannels()
@@ -257,10 +238,7 @@ ARG_URL = urllib.unquote_plus(ARG_PARAMS.get("url", ""))
 if not ARG_MODE:
     viewStart()
 elif ARG_MODE == MODE_A_TO_O:
-    if helper.getSetting(S_USE_ALPHA_CATEGORIES):
-        viewAlphaDirectories()
-    else:
-        viewAtoO()
+    viewAtoO()
 elif ARG_MODE == MODE_INSPIRATION:
     viewEpisodes(ur.URL_TO_INSPIRATION)
 elif ARG_MODE == MODE_SUBJECTS:
